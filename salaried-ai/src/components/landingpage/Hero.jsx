@@ -52,7 +52,11 @@ const imageGridVariants = {
 
 export default function Hero() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(
+    theme.breakpoints.down('md'),
+    { noSsr: true }
+  );
 
   return (
     <Box
@@ -266,7 +270,7 @@ export default function Hero() {
           >
             {/* Floating Images with Parallax-like feel */}
             <FloatingImage
-              src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=400&q=80"
+              src="/img1.png"
               top={0}
               left={20}
               width={260}

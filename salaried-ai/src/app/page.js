@@ -1,12 +1,30 @@
+"use client";
 import GlobalWrapper from "@/components/layouts/GlobalWrapper";
+import dynamic from "next/dynamic";
 import { Stack } from "@mui/material";
-import Hero from "@/components/landingpage/Hero";
-import PastSpeakers from "@/components/landingpage/PastSpeakers";
-import GuestShowcase from "@/components/landingpage/GuestShowcase";
-import Community from "@/components/landingpage/Community";
 import FAQs from "@/components/FAQ/FAQs";
-import EventsWorkshops from "@/components/Carousel/EventsWorkshops";
-import ThreeDImageRing from "@/components/Carousel/ThreeDImageRing";
+import PastSpeakers from "@/components/landingpage/PastSpeakers";
+
+// Client-only components
+const Hero = dynamic(() => import("@/components/landingpage/Hero"), {
+  ssr: false,
+});
+const EventsWorkshops = dynamic(
+  () => import("@/components/Carousel/EventsWorkshops"),
+  { ssr: false }
+);
+const ThreeDImageRing = dynamic(
+  () => import("@/components/Carousel/ThreeDImageRing"),
+  { ssr: false }
+);
+const GuestShowcase = dynamic(
+  () => import("@/components/landingpage/GuestShowcase"),
+  { ssr: false }
+);
+const Community = dynamic(() => import("@/components/landingpage/Community"), {
+  ssr: false,
+});
+
 const imageUrls = [
   // Team collaboration
   "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80",

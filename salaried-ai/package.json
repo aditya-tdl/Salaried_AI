@@ -1,0 +1,33 @@
+{
+  "name": "website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "export": "next export",
+    "deploy": "next build && gh-pages -d out"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@iconify/react": "^6.0.0",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "@reduxjs/toolkit": "^2.8.2",
+    "axios": "^1.13.2",
+    "framer-motion": "^12.23.26",
+    "next": "15.3.5",
+    "nextjs-toploader": "^3.9.17",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-loader-spinner": "^6.1.6",
+    "react-redux": "^9.2.0",
+    "redux-persist": "^6.0.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}

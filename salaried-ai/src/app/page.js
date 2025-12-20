@@ -6,22 +6,22 @@ import FAQs from "@/components/FAQ/FAQs";
 import PastSpeakers from "@/components/landingpage/PastSpeakers";
 
 // Client-only components
-const Hero = dynamic(() => import("@/components/landingpage/Hero"), {
+const Hero = dynamic(() => import("@/components/landingpage/Hero.jsx"), {
   ssr: false,
 });
 const EventsWorkshops = dynamic(
-  () => import("@/components/Carousel/EventsWorkshops"),
+  () => import("@/components/Carousel/EventsWorkshops.jsx"),
   { ssr: false }
 );
 const ThreeDImageRing = dynamic(
-  () => import("@/components/Carousel/ThreeDImageRing"),
+  () => import("@/components/Carousel/ThreeDImageRing.jsx"),
   { ssr: false }
 );
 const GuestShowcase = dynamic(
-  () => import("@/components/landingpage/GuestShowcase"),
+  () => import("@/components/landingpage/GuestShowcase.jsx"),
   { ssr: false }
 );
-const Community = dynamic(() => import("@/components/landingpage/Community"), {
+const Community = dynamic(() => import("@/components/landingpage/Community.jsx"), {
   ssr: false,
 });
 

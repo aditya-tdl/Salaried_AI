@@ -9,7 +9,12 @@ export const getAllUsers = catchAsync(async (req, res) => {
 
     const [users, total] = await Promise.all([
         prisma.user.findMany({
-            where,
+            where: {
+                ...where,
+                role: {
+                    not: "ADMIN"
+                }
+            },
             skip,
             take,
             orderBy: { createdAt: "desc" },

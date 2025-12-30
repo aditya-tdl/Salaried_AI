@@ -5,11 +5,11 @@ import ApiError from "../utils/ApiError.js";
 export const protect = async (req, res, next) => {
     try {
         let token;
+        // Get token from cookie or header
 
-        // Get token from cookie
-        token = req.cookies.token;
-
+        token = req.headers.authorization.split(" ")[1];
         if (!token) {
+            console.log("Auth Header:", req.headers.authorization); // Debug log
             throw new ApiError(401, "Not authorized, no token provided");
         }
 
@@ -19,7 +19,7 @@ export const protect = async (req, res, next) => {
         // Get user from DB
         const user = await prisma.user.findUnique({
             where: { id: decoded.id },
-            select: { id: true, name: true, email: true }, // Exclude password
+            select: { id: true, name: true, email: true, role: true }, // Exclude password, include role
         });
 
         if (!user) {
@@ -30,5 +30,13 @@ export const protect = async (req, res, next) => {
         next();
     } catch (error) {
         next(new ApiError(401, "Not authorized, token failed"));
+    }
+};
+
+export const admin = (req, res, next) => {
+    if (req.user && req.user.role === "ADMIN") {
+        next();
+    } else {
+        next(new ApiError(403, "Not authorized as an admin"));
     }
 };

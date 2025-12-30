@@ -10,6 +10,7 @@ export const fetchAllUsers = createAsyncThunk(
   ) => {
     try {
       const { auth } = getState();
+      console.log("auth", auth);
       const response = await axios.get(`${baseUrl}/users`, {
         params: { page, limit, name: search, email: search, mobile: search },
         headers: {

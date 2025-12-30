@@ -29,6 +29,7 @@ export const register = catchAsync(async (req, res, next) => {
             gender,
             mobile,
             password: hashedPassword,
+            role: "USER",
         },
     });
 
@@ -37,7 +38,43 @@ export const register = catchAsync(async (req, res, next) => {
 
     return res
         .status(201)
-        .json(new ApiResponse(201, { id: user.id, name: user.name, email: user.email }, "User registered successfully"));
+        .json(new ApiResponse(201, { id: user.id, name: user.name, email: user.email, role: user.role }, "User registered successfully"));
+});
+
+export const registerAdmin = catchAsync(async (req, res, next) => {
+    const { name, email, gender, mobile, password } = req.body;
+
+    if (!name || !email || !password || !mobile || !gender) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    const existingUser = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (existingUser) {
+        throw new ApiError(400, "User already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+        data: {
+            name,
+            email,
+            gender,
+            mobile,
+            password: hashedPassword,
+            role: "ADMIN",
+        },
+    });
+
+    // Generate token and set cookie
+    generateToken(res, user.id);
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, { id: user.id, name: user.name, email: user.email, role: user.role }, "Admin registered successfully"));
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -56,9 +93,9 @@ export const login = catchAsync(async (req, res, next) => {
     }
 
     // Generate token and set cookie
-    generateToken(res, user.id);
+    const token = generateToken(res, user.id);
 
     return res
         .status(200)
-        .json(new ApiResponse(200, { id: user.id, name: user.name, email: user.email }, "Login successful"));
+        .json(new ApiResponse(200, { id: user.id, name: user.name, email: user.email, token }, "Login successful"));
 });

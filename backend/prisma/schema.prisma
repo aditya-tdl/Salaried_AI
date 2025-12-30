@@ -15,4 +15,10 @@ model User {
   mobile    String
   password  String
   createdAt DateTime @default(now())
+  role      Role     @default(USER)
+}
+
+enum Role {
+  USER
+  ADMIN
 }

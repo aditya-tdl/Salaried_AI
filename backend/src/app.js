@@ -8,6 +8,7 @@ import morgan from "morgan";
 const app = express();
 
 const allowedOrigins = [
+  "https://salaried-ai.vercel.app",
   "http://localhost:3001",
   "https://jncvd963-3001.inc1.devtunnels.ms",
   "https://3rx6504d-5173.inc1.devtunnels.ms",

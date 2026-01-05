@@ -1,5 +1,5 @@
 export const baseUrl = process.env.NODE_ENV === "development"
-    ? "http://localhost:5000/api"
+    ? "https://backend-seven-eta-13.vercel.app/api"
     : "https://api.salaried.ai/api";
 // export const baseUrl = process.env.NODE_ENV === "development"
 //     ? "https://jncvd963-5000.inc1.devtunnels.ms/api"

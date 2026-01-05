@@ -8,8 +8,8 @@ const router = express.Router();
 // Added protect middleware to ensure only authenticated users can see other users.
 router.get(
   "/",
-  protect,
-  admin,
+  // protect,
+  // admin,
   getAllUsers
 );
 

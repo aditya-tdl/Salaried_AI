@@ -79,7 +79,7 @@ const Sidebar = () => {
                     >
                         S
                     </Box>
-                    <Typography variant="h5" fontWeight="800" sx={{ letterSpacing: "-0.5px", color: "#1B2559" }}>
+                    <Typography onClick={() => router.push("/")} variant="h5" fontWeight="800" sx={{ letterSpacing: "-0.5px", color: "#1B2559", cursor: "pointer" }}>
                         Salaried AI
                     </Typography>
                 </Box>

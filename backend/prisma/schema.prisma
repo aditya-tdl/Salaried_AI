@@ -3,10 +3,18 @@ generator client {
   output   = "../generated/prisma"
 }
 
+// Old Local Datasource (Commented for Neon Migration)
+// datasource db {
+//   provider = "postgresql"
+//   schemas  = ["public", "uam", "subscription"]
+//   url      = env("DATABASE_URL_OLD_LOCAL") 
+// }
+
+// New Neon Datasource
 datasource db {
-  provider = "postgresql"
-  schemas  = ["public", "uam", "subscription"]
-  }
+  provider  = "postgresql"
+  schemas   = ["public", "uam", "subscription"]
+}
 
 /* =========================
    USER & ACCESS MANAGEMENT

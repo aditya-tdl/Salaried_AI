@@ -17,11 +17,19 @@ import {
     InputAdornment,
     Link,
     useMediaQuery,
-    useTheme
+    useTheme,
+    Grid,
+    Divider,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Script from "next/script";
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
@@ -31,7 +39,7 @@ import { openSnackbar } from '@/components/ReduxToolkit/Slices/snackbarSlice';
 export default function RegisterPage() {
     const theme = useTheme();
     const dispatch = useDispatch();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -84,18 +92,6 @@ export default function RegisterPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     if (!validate()) return;
-
-    //     setLoading(true);
-    //     console.log('Register Data:', formData);
-
-    //     setTimeout(() => {
-    //         setLoading(false);
-    //         alert('Registered successfully (mock)');
-    //     }, 1200);
-    // };
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
@@ -106,23 +102,23 @@ export default function RegisterPage() {
                 withCredentials: true,
             });
             const { email, id } = response.data.data;
-            setFormData({
-                name: '',
-                email: '',
-                gender: '',
-                mobile: '',
-                password: '',
-                confirmPassword: '',
-            })
+            // setFormData({
+            //     name: '',
+            //     email: '',
+            //     gender: '',
+            //     mobile: '',
+            //     password: '',
+            //     confirmPassword: '',
+            // })
             handlePayment(response.data.data)
         } catch (err) {
             const errorMsg =
                 err.response?.data?.message || err.message || "Invalid credentials";
             dispatch(openSnackbar({ message: errorMsg, severity: "error" }));
-        } finally {
-            setLoading(false);
+            setLoading(false); // Only stop loading on error, otherwise keep distinct for payment
         }
     };
+
     // Master Card Test Details:
     // Card Number: 5104 0600 0000 0008
     // Expiry: Any future date
@@ -169,12 +165,23 @@ export default function RegisterPage() {
                     console.log("Payment response:", response);
 
                     // Optional: Verify payment on backend here
-                    verifyPaymentOnBackend(response);
+                    // verifyPaymentOnBackend(response);
 
                     dispatch(openSnackbar({
                         message: "Payment successful 🎉",
                         severity: "success"
                     }));
+
+                    // Reset form and loading state after successful payment/flow
+                    setFormData({
+                        name: '',
+                        email: '',
+                        gender: '',
+                        mobile: '',
+                        password: '',
+                        confirmPassword: '',
+                    });
+                    setLoading(false);
                 },
                 "modal": {
                     "ondismiss": function () {
@@ -183,6 +190,7 @@ export default function RegisterPage() {
                             message: "Payment cancelled",
                             severity: "info"
                         }));
+                        setLoading(false);
                     }
                 },
                 prefill: {
@@ -209,12 +217,14 @@ export default function RegisterPage() {
                     message: `Payment failed: ${response.error.description || 'Unknown error'}`,
                     severity: "error"
                 }));
+                setLoading(false);
             });
 
             rzp.open();
 
         } catch (error) {
             console.error("Payment initialization error:", error);
+            setLoading(false);
 
             // Show user-friendly error message
             let errorMessage = "Failed to initialize payment";
@@ -234,58 +244,136 @@ export default function RegisterPage() {
 
     return (
         <>
-            {/* Razorpay Script */}
-
             <GlobalWrapper>
                 <Script
                     id="razorpay-checkout-js"
                     src="https://checkout.razorpay.com/v1/checkout.js"
                 />
-                <Container maxWidth="sm" sx={{ py: { xs: 6, md: 2 } }}>
+
+                <Box
+                    sx={{
+                        minHeight: '95vh',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        py: { xs: 4, md: 2 },
+                        px: { xs: 2, md: 4 },
+                        background: 'linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%)'
+                    }}
+                >
                     <Paper
                         elevation={0}
-                        className="register-card"
                         sx={{
-                            p: { xs: 3, sm: 5 },
+                            width: '100%',
+                            maxWidth: 1100,
                             borderRadius: 4,
-                            background: '#fff',
-                            border: '1px solid rgba(0,0,0,0.06)',
-                            boxShadow: {
-                                xs: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                                md: '0 20px 25px -5px rgba(0,0,0,0.05)',
-                            },
+                            overflow: 'hidden',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+                            display: 'flex',
+                            flexDirection: { xs: 'column', md: 'row' },
+                            opacity: 0,
+                            animation: 'fadeUp 0.8s ease-out forwards',
                         }}
                     >
-                        <Stack spacing={4}>
-                            {/* Header */}
-                            <Box textAlign="center">
-                                <Box
-                                    sx={{
-                                        width: 60,
-                                        height: 60,
-                                        bgcolor: '#f5f3ff',
-                                        borderRadius: '50%',
-                                        mx: 'auto',
-                                        mb: 2,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#7c3aed'
-                                    }}
-                                >
-                                    <PersonOutlineIcon fontSize="large" />
-                                </Box>
-                                <Typography fontWeight={900} fontSize={{ xs: 24, md: 30 }}>
-                                    Create your account
-                                </Typography>
-                                <Typography mt={1} color="#6b7280" fontSize={{ xs: 14, md: 15 }}>
-                                    Join India’s fastest growing career community
-                                </Typography>
-                            </Box>
+                        {/* LEFT SIDE: Premium Info */}
+                        <Box sx={{
+                            flex: 1,
+                            bgcolor: '#1e1b4b', // Dark purple/indigo
+                            color: 'white',
+                            p: { xs: 4, md: 6 },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            {/* Decorative Background Elements */}
+                            <Box sx={{
+                                position: 'absolute',
+                                top: -50,
+                                left: -50,
+                                width: 200,
+                                height: 200,
+                                borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(124,58,237,0.4) 0%, rgba(124,58,237,0) 70%)',
+                                filter: 'blur(40px)',
+                            }} />
+                            <Box sx={{
+                                position: 'absolute',
+                                bottom: -50,
+                                right: -50,
+                                width: 300,
+                                height: 300,
+                                borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, rgba(139,92,246,0) 70%)',
+                                filter: 'blur(60px)',
+                            }} />
 
-                            {/* Form */}
+                            <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.1)', px: 2, py: 0.5, borderRadius: 10, mb: 3 }}>
+                                    <AutoAwesomeIcon sx={{ fontSize: 18, color: '#fbbf24' }} />
+                                    <Typography variant="subtitle2" fontWeight={600} color="#fbbf24">
+                                        Premium Access
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="h3" fontWeight={800} sx={{ mb: 1, fontSize: { xs: '2rem', md: '2.5rem' } }}>
+                                    Unlock Your <br />
+                                    <Box component="span" sx={{ color: '#a78bfa' }}>Carreer Potential</Box>
+                                </Typography>
+
+                                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 4, fontSize: '1.1rem', lineHeight: 1.6 }}>
+                                    Join the elite community of professionals accelerating their growth with Salaried.ai.
+                                </Typography>
+
+                                <Divider sx={{ bgcolor: 'rgba(255,255,255,0.15)', mb: 4 }} />
+
+                                <Box sx={{ mb: 4 }}>
+                                    <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5, color: '#fff' }}>
+                                        ₹49 <Box component="span" sx={{ fontSize: '0.9rem', fontWeight: 400, color: 'rgba(255,255,255,0.6)' }}>/ month</Box>
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                        Billed monthly. Cancel anytime.
+                                    </Typography>
+                                </Box>
+
+                                <Stack spacing={2}>
+                                    {[
+                                        "Access to exclusive AI career tools",
+                                        "Monthly expert webinars & workshops",
+                                        "Premium community network access",
+                                        "Unlimited resume reviews",
+                                        "Priority support 24/7"
+                                    ].map((feature, index) => (
+                                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <CheckCircleIcon sx={{ color: '#34d399', fontSize: 20 }} />
+                                            <Typography variant="body2" fontWeight={500} sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                                                {feature}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            </Box>
+                        </Box>
+
+                        {/* RIGHT SIDE: Form */}
+                        <Box sx={{
+                            flex: 1.2,
+                            bgcolor: '#fff',
+                            p: { xs: 4, md: 6 },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
+                        }}>
+                            <Typography variant="h5" fontWeight={800} color="#111827" sx={{ mb: 1 }}>
+                                Create Account
+                            </Typography>
+                            <Typography variant="body2" color="#6b7280" sx={{ mb: 4 }}>
+                                Enter your details to get started with your premium access.
+                            </Typography>
+
                             <Box component="form" onSubmit={handleSubmit}>
-                                <Stack spacing={3}>
+                                <Stack spacing={2.5}>
                                     <TextField
                                         fullWidth
                                         label="Full Name"
@@ -295,7 +383,10 @@ export default function RegisterPage() {
                                         error={!!errors.name}
                                         helperText={errors.name}
                                         variant="outlined"
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                                        }}
                                     />
 
                                     <TextField
@@ -306,12 +397,14 @@ export default function RegisterPage() {
                                         onChange={handleChange}
                                         error={!!errors.email}
                                         helperText={errors.email}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                                        }}
                                     />
 
-                                    {/* Gender */}
                                     <Box>
-                                        <FormLabel error={!!errors.gender} sx={{ fontSize: 14, fontWeight: 500, mb: 1, display: 'block' }}>
+                                        <FormLabel error={!!errors.gender} sx={{ fontSize: 13, fontWeight: 600, mb: 1, display: 'block', color: '#374151' }}>
                                             Gender
                                         </FormLabel>
                                         <RadioGroup
@@ -321,21 +414,25 @@ export default function RegisterPage() {
                                             onChange={handleChange}
                                             sx={{ gap: 2 }}
                                         >
-                                            <FormControlLabel
-                                                value="male"
-                                                control={<Radio size="small" />}
-                                                label={<Typography fontSize={15}>Male</Typography>}
-                                            />
-                                            <FormControlLabel
-                                                value="female"
-                                                control={<Radio size="small" />}
-                                                label={<Typography fontSize={15}>Female</Typography>}
-                                            />
-                                            <FormControlLabel
-                                                value="other"
-                                                control={<Radio size="small" />}
-                                                label={<Typography fontSize={15}>Other</Typography>}
-                                            />
+                                            {['Male', 'Female', 'Other'].map((option) => (
+                                                <FormControlLabel
+                                                    key={option}
+                                                    value={option.toLowerCase()}
+                                                    control={<Radio size="small" sx={{ color: '#d1d5db', '&.Mui-checked': { color: '#7c3aed' } }} />}
+                                                    label={<Typography fontSize={14} fontWeight={500} color="#4b5563">{option}</Typography>}
+                                                    sx={{
+                                                        border: `1px solid ${formData.gender === option.toLowerCase() ? '#7c3aed' : '#e5e7eb'}`,
+                                                        borderRadius: 2,
+                                                        px: 2,
+                                                        py: 0.5,
+                                                        mr: 0,
+                                                        flex: 1,
+                                                        bgcolor: formData.gender === option.toLowerCase() ? '#f5f3ff' : 'transparent',
+                                                        transition: 'all 0.2s',
+                                                        '&:hover': { bgcolor: '#f9fafb' }
+                                                    }}
+                                                />
+                                            ))}
                                         </RadioGroup>
                                         {errors.gender && (
                                             <Typography fontSize={12} color="error" mt={0.5}>
@@ -353,60 +450,60 @@ export default function RegisterPage() {
                                         inputProps={{ maxLength: 10 }}
                                         error={!!errors.mobile}
                                         helperText={errors.mobile}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                    />
-
-                                    {/* Password */}
-                                    <TextField
-                                        fullWidth
-                                        label="Password"
-                                        name="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        error={!!errors.password}
-                                        helperText={errors.password}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                        InputProps={{
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            ),
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                                            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
                                         }}
                                     />
 
-                                    {/* Confirm Password */}
-                                    <TextField
-                                        fullWidth
-                                        label="Confirm Password"
-                                        name="confirmPassword"
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        error={!!errors.confirmPassword}
-                                        helperText={errors.confirmPassword}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                        InputProps={{
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() =>
-                                                            setShowConfirmPassword(!showConfirmPassword)
-                                                        }
-                                                        edge="end"
-                                                    >
-                                                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                    />
+                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                        <TextField
+                                            fullWidth
+                                            label="Password"
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            error={!!errors.password}
+                                            helperText={errors.password}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                                                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                                            }}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                        <TextField
+                                            fullWidth
+                                            label="Confirm Password"
+                                            name="confirmPassword"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            error={!!errors.confirmPassword}
+                                            helperText={errors.confirmPassword}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                                                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                                            }}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                                                            {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    </Stack>
 
                                     <Button
                                         type="submit"
@@ -414,49 +511,50 @@ export default function RegisterPage() {
                                         disabled={loading}
                                         sx={{
                                             mt: 2,
-                                            background: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+                                            background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
                                             color: '#fff',
-                                            py: 1.6,
-                                            borderRadius: '99px',
-                                            fontWeight: 800,
+                                            py: 1.8,
+                                            borderRadius: 3,
+                                            fontWeight: 700,
                                             fontSize: 16,
                                             textTransform: 'none',
-                                            boxShadow: '0 10px 20px -5px rgba(124,58,237,0.3)',
+                                            boxShadow: '0 10px 25px -5px rgba(124,58,237,0.4)',
+                                            transition: 'all 0.3s ease',
                                             '&:hover': {
-                                                boxShadow: '0 15px 25px -5px rgba(124,58,237,0.4)',
+                                                boxShadow: '0 15px 30px -5px rgba(124,58,237,0.5)',
+                                                transform: 'translateY(-2px)'
+                                            },
+                                            '&:disabled': {
+                                                background: '#d1d5db',
+                                                boxShadow: 'none'
                                             }
                                         }}
                                     >
-                                        {loading ? 'Continue to payment...' : 'Continue to payment'}
+                                        {loading ? 'Processing...' : 'Pay ₹49 & Register'}
                                     </Button>
+
+                                    {/* <Typography variant="caption" textAlign="center" color="#9ca3af" sx={{ mt: 2, display: 'block' }}>
+                                        Secure payment powered by Razorpay.
+                                    </Typography> */}
+
                                 </Stack>
                             </Box>
-
-                            {/* <Typography fontSize={13} color="#6b7280" textAlign="center">
-                                By signing up, you agree to our <Link href="#" underline="hover" color="#6b7280">Terms</Link> & <Link href="#" underline="hover" color="#6b7280">Privacy Policy</Link>
-                            </Typography> */}
-                        </Stack>
+                        </Box>
                     </Paper>
-                </Container>
-
-                {/* Pure CSS animation */}
+                </Box>
                 <style jsx global>{`
-        .register-card {
-          animation: fadeUp 0.6s ease-out both;
-        }
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(24px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+                    @keyframes fadeUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                    }
+                `}</style>
             </GlobalWrapper>
         </>
-
     );
 }

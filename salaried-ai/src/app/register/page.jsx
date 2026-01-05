@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import GlobalWrapper from '@/components/layouts/GlobalWrapper';
 import {
@@ -23,9 +22,15 @@ import {
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import Script from "next/script";
+import { useDispatch } from 'react-redux';
+import axios from 'axios';
+import { baseUrl } from '@/components/baseUrl/BaseUrl';
+import { openSnackbar } from '@/components/ReduxToolkit/Slices/snackbarSlice';
 
 export default function RegisterPage() {
     const theme = useTheme();
+    const dispatch = useDispatch();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [formData, setFormData] = useState({
         name: '',
@@ -79,221 +84,363 @@ export default function RegisterPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     if (!validate()) return;
+
+    //     setLoading(true);
+    //     console.log('Register Data:', formData);
+
+    //     setTimeout(() => {
+    //         setLoading(false);
+    //         alert('Registered successfully (mock)');
+    //     }, 1200);
+    // };
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
-
         setLoading(true);
-        console.log('Register Data:', formData);
 
-        setTimeout(() => {
+        try {
+            const response = await axios.post(`${baseUrl}/auth/register`, formData, {
+                withCredentials: true,
+            });
+            const { email, id } = response.data.data;
+            setFormData({
+                name: '',
+                email: '',
+                gender: '',
+                mobile: '',
+                password: '',
+                confirmPassword: '',
+            })
+            handlePayment(response.data.data)
+        } catch (err) {
+            const errorMsg =
+                err.response?.data?.message || err.message || "Invalid credentials";
+            dispatch(openSnackbar({ message: errorMsg, severity: "error" }));
+        } finally {
             setLoading(false);
-            alert('Registered successfully (mock)');
-        }, 1200);
+        }
+    };
+    // Master Card Test Details:
+    // Card Number: 5104 0600 0000 0008
+    // Expiry: Any future date
+    // CVV: 123
+    // OTP: 123456
+
+    /* ---------------- Razorpay TEST MODE (Frontend Only) ---------------- */
+    const handlePayment = async (data) => {
+        try {
+            // Step 1: Create payment on backend
+            const res = await fetch(`${baseUrl}/payment/create`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: data.id }),
+                credentials: "include",
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            const paymentData = await res.json();
+
+            if (!paymentData.success) {
+                throw new Error(paymentData.message || "Failed to create payment");
+            }
+
+            const { subscriptionId } = paymentData.data;
+
+            if (!subscriptionId) {
+                throw new Error("No subscription ID received from server");
+            }
+
+            console.log("subscriptionId", subscriptionId);
+
+            // Step 2: Initialize Razorpay
+            const options = {
+                key: "rzp_test_RBSer2L2HUkTuM", // public key only
+                subscription_id: subscriptionId, // 🔥 IMPORTANT
+                name: "Salaried.ai",
+                description: "₹49 / month subscription",
+                handler: function (response) {
+                    // DO NOT trust this fully - verify on backend
+                    console.log("Payment response:", response);
+
+                    // Optional: Verify payment on backend here
+                    verifyPaymentOnBackend(response);
+
+                    dispatch(openSnackbar({
+                        message: "Payment successful 🎉",
+                        severity: "success"
+                    }));
+                },
+                "modal": {
+                    "ondismiss": function () {
+                        console.log("Payment modal closed by user");
+                        dispatch(openSnackbar({
+                            message: "Payment cancelled",
+                            severity: "info"
+                        }));
+                    }
+                },
+                prefill: {
+                    name: data.name,
+                    email: data.email,
+                    contact: data.mobile,
+                },
+                theme: {
+                    color: "#7c3aed",
+                },
+            };
+
+            // Check if Razorpay is available
+            if (!window.Razorpay) {
+                throw new Error("Razorpay SDK not loaded");
+            }
+
+            const rzp = new window.Razorpay(options);
+
+            // Add error handler for Razorpay
+            rzp.on('payment.failed', function (response) {
+                console.error('Payment failed:', response.error);
+                dispatch(openSnackbar({
+                    message: `Payment failed: ${response.error.description || 'Unknown error'}`,
+                    severity: "error"
+                }));
+            });
+
+            rzp.open();
+
+        } catch (error) {
+            console.error("Payment initialization error:", error);
+
+            // Show user-friendly error message
+            let errorMessage = "Failed to initialize payment";
+
+            if (error.message.includes("Network Error") || error.message.includes("Failed to fetch")) {
+                errorMessage = "Network error. Please check your internet connection.";
+            } else if (error.message.includes("subscription ID")) {
+                errorMessage = "Payment setup failed. Please try again.";
+            }
+
+            dispatch(openSnackbar({
+                message: errorMessage,
+                severity: "error"
+            }));
+        }
     };
 
     return (
-        <GlobalWrapper>
-            <Container maxWidth="sm" sx={{ py: { xs: 6, md: 8 } }}>
-                <Paper
-                    elevation={0}
-                    className="register-card"
-                    sx={{
-                        p: { xs: 3, sm: 5 },
-                        borderRadius: 4,
-                        background: '#fff',
-                        border: '1px solid rgba(0,0,0,0.06)',
-                        boxShadow: {
-                            xs: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            md: '0 20px 25px -5px rgba(0,0,0,0.05)',
-                        },
-                    }}
-                >
-                    <Stack spacing={4}>
-                        {/* Header */}
-                        <Box textAlign="center">
-                            <Box
-                                sx={{
-                                    width: 60,
-                                    height: 60,
-                                    bgcolor: '#f5f3ff',
-                                    borderRadius: '50%',
-                                    mx: 'auto',
-                                    mb: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#7c3aed'
-                                }}
-                            >
-                                <PersonOutlineIcon fontSize="large" />
-                            </Box>
-                            <Typography fontWeight={900} fontSize={{ xs: 24, md: 30 }}>
-                                Create your account
-                            </Typography>
-                            <Typography mt={1} color="#6b7280" fontSize={{ xs: 14, md: 15 }}>
-                                Join India’s fastest growing career community
-                            </Typography>
-                        </Box>
+        <>
+            {/* Razorpay Script */}
 
-                        {/* Form */}
-                        <Box component="form" onSubmit={handleSubmit}>
-                            <Stack spacing={3}>
-                                <TextField
-                                    fullWidth
-                                    label="Full Name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    error={!!errors.name}
-                                    helperText={errors.name}
-                                    variant="outlined"
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    label="Email Address"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    error={!!errors.email}
-                                    helperText={errors.email}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                />
-
-                                {/* Gender */}
-                                <Box>
-                                    <FormLabel error={!!errors.gender} sx={{ fontSize: 14, fontWeight: 500, mb: 1, display: 'block' }}>
-                                        Gender
-                                    </FormLabel>
-                                    <RadioGroup
-                                        row
-                                        name="gender"
-                                        value={formData.gender}
-                                        onChange={handleChange}
-                                        sx={{ gap: 2 }}
-                                    >
-                                        <FormControlLabel
-                                            value="male"
-                                            control={<Radio size="small" />}
-                                            label={<Typography fontSize={15}>Male</Typography>}
-                                        />
-                                        <FormControlLabel
-                                            value="female"
-                                            control={<Radio size="small" />}
-                                            label={<Typography fontSize={15}>Female</Typography>}
-                                        />
-                                        <FormControlLabel
-                                            value="other"
-                                            control={<Radio size="small" />}
-                                            label={<Typography fontSize={15}>Other</Typography>}
-                                        />
-                                    </RadioGroup>
-                                    {errors.gender && (
-                                        <Typography fontSize={12} color="error" mt={0.5}>
-                                            {errors.gender}
-                                        </Typography>
-                                    )}
-                                </Box>
-
-                                <TextField
-                                    fullWidth
-                                    label="Mobile Number"
-                                    name="mobile"
-                                    value={formData.mobile}
-                                    onChange={handleChange}
-                                    inputProps={{ maxLength: 10 }}
-                                    error={!!errors.mobile}
-                                    helperText={errors.mobile}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                />
-
-                                {/* Password */}
-                                <TextField
-                                    fullWidth
-                                    label="Password"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    error={!!errors.password}
-                                    helperText={errors.password}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    edge="end"
-                                                >
-                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-
-                                {/* Confirm Password */}
-                                <TextField
-                                    fullWidth
-                                    label="Confirm Password"
-                                    name="confirmPassword"
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    error={!!errors.confirmPassword}
-                                    helperText={errors.confirmPassword}
-                                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() =>
-                                                        setShowConfirmPassword(!showConfirmPassword)
-                                                    }
-                                                    edge="end"
-                                                >
-                                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    disabled={loading}
+            <GlobalWrapper>
+                <Script
+                    id="razorpay-checkout-js"
+                    src="https://checkout.razorpay.com/v1/checkout.js"
+                />
+                <Container maxWidth="sm" sx={{ py: { xs: 6, md: 2 } }}>
+                    <Paper
+                        elevation={0}
+                        className="register-card"
+                        sx={{
+                            p: { xs: 3, sm: 5 },
+                            borderRadius: 4,
+                            background: '#fff',
+                            border: '1px solid rgba(0,0,0,0.06)',
+                            boxShadow: {
+                                xs: '0 4px 6px -1px rgba(0,0,0,0.05)',
+                                md: '0 20px 25px -5px rgba(0,0,0,0.05)',
+                            },
+                        }}
+                    >
+                        <Stack spacing={4}>
+                            {/* Header */}
+                            <Box textAlign="center">
+                                <Box
                                     sx={{
-                                        mt: 2,
-                                        background: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
-                                        color: '#fff',
-                                        py: 1.6,
-                                        borderRadius: '99px',
-                                        fontWeight: 800,
-                                        fontSize: 16,
-                                        textTransform: 'none',
-                                        boxShadow: '0 10px 20px -5px rgba(124,58,237,0.3)',
-                                        '&:hover': {
-                                            boxShadow: '0 15px 25px -5px rgba(124,58,237,0.4)',
-                                        }
+                                        width: 60,
+                                        height: 60,
+                                        bgcolor: '#f5f3ff',
+                                        borderRadius: '50%',
+                                        mx: 'auto',
+                                        mb: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#7c3aed'
                                     }}
                                 >
-                                    {loading ? 'Creating Account...' : 'Create Account'}
-                                </Button>
-                            </Stack>
-                        </Box>
+                                    <PersonOutlineIcon fontSize="large" />
+                                </Box>
+                                <Typography fontWeight={900} fontSize={{ xs: 24, md: 30 }}>
+                                    Create your account
+                                </Typography>
+                                <Typography mt={1} color="#6b7280" fontSize={{ xs: 14, md: 15 }}>
+                                    Join India’s fastest growing career community
+                                </Typography>
+                            </Box>
 
-                        <Typography fontSize={13} color="#6b7280" textAlign="center">
-                            By signing up, you agree to our <Link href="#" underline="hover" color="primary">Terms</Link> & <Link href="#" underline="hover" color="primary">Privacy Policy</Link>
-                        </Typography>
-                    </Stack>
-                </Paper>
-            </Container>
+                            {/* Form */}
+                            <Box component="form" onSubmit={handleSubmit}>
+                                <Stack spacing={3}>
+                                    <TextField
+                                        fullWidth
+                                        label="Full Name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        error={!!errors.name}
+                                        helperText={errors.name}
+                                        variant="outlined"
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    />
 
-            {/* Pure CSS animation */}
-            <style jsx global>{`
+                                    <TextField
+                                        fullWidth
+                                        label="Email Address"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        error={!!errors.email}
+                                        helperText={errors.email}
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    />
+
+                                    {/* Gender */}
+                                    <Box>
+                                        <FormLabel error={!!errors.gender} sx={{ fontSize: 14, fontWeight: 500, mb: 1, display: 'block' }}>
+                                            Gender
+                                        </FormLabel>
+                                        <RadioGroup
+                                            row
+                                            name="gender"
+                                            value={formData.gender}
+                                            onChange={handleChange}
+                                            sx={{ gap: 2 }}
+                                        >
+                                            <FormControlLabel
+                                                value="male"
+                                                control={<Radio size="small" />}
+                                                label={<Typography fontSize={15}>Male</Typography>}
+                                            />
+                                            <FormControlLabel
+                                                value="female"
+                                                control={<Radio size="small" />}
+                                                label={<Typography fontSize={15}>Female</Typography>}
+                                            />
+                                            <FormControlLabel
+                                                value="other"
+                                                control={<Radio size="small" />}
+                                                label={<Typography fontSize={15}>Other</Typography>}
+                                            />
+                                        </RadioGroup>
+                                        {errors.gender && (
+                                            <Typography fontSize={12} color="error" mt={0.5}>
+                                                {errors.gender}
+                                            </Typography>
+                                        )}
+                                    </Box>
+
+                                    <TextField
+                                        fullWidth
+                                        label="Mobile Number"
+                                        name="mobile"
+                                        value={formData.mobile}
+                                        onChange={handleChange}
+                                        inputProps={{ maxLength: 10 }}
+                                        error={!!errors.mobile}
+                                        helperText={errors.mobile}
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                    />
+
+                                    {/* Password */}
+                                    <TextField
+                                        fullWidth
+                                        label="Password"
+                                        name="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        error={!!errors.password}
+                                        helperText={errors.password}
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        edge="end"
+                                                    >
+                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+
+                                    {/* Confirm Password */}
+                                    <TextField
+                                        fullWidth
+                                        label="Confirm Password"
+                                        name="confirmPassword"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        error={!!errors.confirmPassword}
+                                        helperText={errors.confirmPassword}
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                                        InputProps={{
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            setShowConfirmPassword(!showConfirmPassword)
+                                                        }
+                                                        edge="end"
+                                                    >
+                                                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+
+                                    <Button
+                                        type="submit"
+                                        fullWidth
+                                        disabled={loading}
+                                        sx={{
+                                            mt: 2,
+                                            background: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+                                            color: '#fff',
+                                            py: 1.6,
+                                            borderRadius: '99px',
+                                            fontWeight: 800,
+                                            fontSize: 16,
+                                            textTransform: 'none',
+                                            boxShadow: '0 10px 20px -5px rgba(124,58,237,0.3)',
+                                            '&:hover': {
+                                                boxShadow: '0 15px 25px -5px rgba(124,58,237,0.4)',
+                                            }
+                                        }}
+                                    >
+                                        {loading ? 'Continue to payment...' : 'Continue to payment'}
+                                    </Button>
+                                </Stack>
+                            </Box>
+
+                            {/* <Typography fontSize={13} color="#6b7280" textAlign="center">
+                                By signing up, you agree to our <Link href="#" underline="hover" color="#6b7280">Terms</Link> & <Link href="#" underline="hover" color="#6b7280">Privacy Policy</Link>
+                            </Typography> */}
+                        </Stack>
+                    </Paper>
+                </Container>
+
+                {/* Pure CSS animation */}
+                <style jsx global>{`
         .register-card {
           animation: fadeUp 0.6s ease-out both;
         }
@@ -308,6 +455,8 @@ export default function RegisterPage() {
           }
         }
       `}</style>
-        </GlobalWrapper>
+            </GlobalWrapper>
+        </>
+
     );
 }

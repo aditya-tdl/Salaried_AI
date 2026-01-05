@@ -1,24 +1,77 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  schemas  = ["public", "uam", "subscription"]
+  }
+
+/* =========================
+   USER & ACCESS MANAGEMENT
+   ========================= */
+
+model user {
+  id            Int                 @id @default(autoincrement())
+  name          String
+  email         String              @unique
+  gender        String
+  mobile        String              @unique
+  password      String
+  role          role                @default(USER)
+  created_at    DateTime            @default(now())
+
+  subscription  subscription_plan?
+
+  @@schema("uam")
+  @@index([email])
+  @@index([mobile])
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  gender    String
-  mobile    String
-  password  String
-  createdAt DateTime @default(now())
-  role      Role     @default(USER)
+/* =========================
+   SUBSCRIPTION DOMAIN
+   ========================= */
+
+model subscription_plan {
+  id                       Int                    @id @default(autoincrement())
+  user_id                  Int                    @unique
+  razorpay_plan_id         String
+  razorpay_subscription_id String                 @unique
+  razorpay_customer_id     String?
+  status                   subscription_status    @default(CREATED)
+
+  start_at                 DateTime?
+  end_at                   DateTime?
+  next_charge_at            DateTime?
+
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+
+  user                     user                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@schema("subscription")
+  @@index([user_id])
+  @@index([razorpay_subscription_id])
+  @@index([status])
 }
 
-enum Role {
+/* =========================
+   ENUMS
+   ========================= */
+
+enum subscription_status {
+  CREATED
+  AUTHENTICATED
+  ACTIVE
+  PAUSED
+  CANCELLED
+  COMPLETED
+   @@schema("public")
+}
+
+enum role {
   USER
   ADMIN
+   @@schema("public")
 }

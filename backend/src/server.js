@@ -1,15 +1,21 @@
 import dotenv from "dotenv";
 
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.development";
+// Load environment variables FIRST
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+
+// console.log(`Loading environment from: ${envFile}`);
+
+// Load immediately before anything else
 dotenv.config({ path: envFile });
 
-console.log(`Loading environment from: ${envFile}`);
-
+// Now import other modules
 import app from "./app.js";
-import prisma from "./config/db.js";
+import { prisma } from "./config/db.js";
 
 const PORT = process.env.PORT || 5000;
-
 const startServer = async () => {
   try {
     await prisma.$connect();

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import prisma from "../config/db.js";
+import { prisma } from "../config/db.js";
 import ApiError from "../utils/ApiError.js";
 
 export const protect = async (req, res, next) => {

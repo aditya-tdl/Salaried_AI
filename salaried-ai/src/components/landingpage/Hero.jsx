@@ -1,5 +1,4 @@
 'use client';
-
 import {
   Container,
   Typography,
@@ -13,6 +12,8 @@ import {
 import { motion } from 'framer-motion';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Script from 'next/script';
+import Link from "next/link";
+
 
 /* ---------------- Razorpay TEST MODE (Frontend Only) ---------------- */
 const handlePayment = () => {
@@ -23,7 +24,7 @@ const handlePayment = () => {
 
   const options = {
     key: 'rzp_test_Kotf5HyoWEo0bV',
-    amount: 5900, // ₹59
+    amount: 49,
     currency: 'INR',
     name: 'Salaried.ai',
     description: 'Test Mode Subscription',
@@ -162,7 +163,7 @@ export default function Hero() {
                       cursor: 'pointer',
                     }}
                   >
-                    ₹59 / Month
+                    ₹49 / Month
                   </Box>
                 </Typography>
               </Box>
@@ -194,8 +195,8 @@ export default function Hero() {
                 mb={6}
               >
                 <Button
-                  onClick={handlePayment}
-                  component={motion.button}
+                  component={Link}
+                  href="/register"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   endIcon={<ArrowForwardIcon />}
@@ -215,7 +216,7 @@ export default function Hero() {
                     },
                   }}
                 >
-                  Start for ₹59 / month
+                  Start for ₹49 / month
                 </Button>
               </Stack>
 

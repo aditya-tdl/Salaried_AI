@@ -5,19 +5,34 @@ import { getPagination, getSearch } from "../../utils/query.js";
 
 export const getAllUsers = catchAsync(async (req, res) => {
     const { skip, take, page, limit } = getPagination(req.query);
-    const where = getSearch(req.query, ["name", "email", "mobile"]);
+
+    const searchCondition = getSearch(req.query, [
+        "name",
+        "email",
+        "mobile",
+    ]);
+
+    // Base condition: NON-ADMIN users only
+    const where = {
+        role: {
+            not: "ADMIN",
+        },
+    };
+
+    // Attach search only if present
+    if (searchCondition) {
+        where.OR = searchCondition.OR;
+    }
+
 
     const [users, total] = await Promise.all([
         prisma.user.findMany({
-            where: {
-                ...where,
-                role: {
-                    not: "ADMIN"
-                }
-            },
+            where,
             skip,
             take,
-            orderBy: { created_at: "desc" },
+            orderBy: {
+                created_at: "desc",
+            },
             select: {
                 id: true,
                 name: true,
@@ -30,8 +45,6 @@ export const getAllUsers = catchAsync(async (req, res) => {
         prisma.user.count({ where }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
-
     return res.status(200).json(
         new ApiResponse(
             200,
@@ -41,10 +54,11 @@ export const getAllUsers = catchAsync(async (req, res) => {
                     total,
                     page,
                     limit,
-                    totalPages,
+                    totalPages: Math.ceil(total / limit),
                 },
             },
             "Users fetched successfully"
         )
     );
 });
+

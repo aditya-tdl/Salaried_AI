@@ -3,22 +3,23 @@
  */
 
 export const getPagination = (query) => {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const take = limit;
+    const page = Math.max(parseInt(query.page) || 1, 1);
+    const limit = Math.min(parseInt(query.limit) || 10, 100);
 
     return {
-        skip,
-        take,
         page,
         limit,
+        skip: (page - 1) * limit,
+        take: limit,
     };
 };
 
-export const getSearch = (query, fields) => {
-    const search = query.search;
-    if (!search || !fields || fields.length === 0) return {};
+export const getSearch = (query, fields = []) => {
+    const search = query.search?.trim();
+
+    if (!search || fields.length === 0) {
+        return null;
+    }
 
     return {
         OR: fields.map((field) => ({
@@ -28,4 +29,19 @@ export const getSearch = (query, fields) => {
             },
         })),
     };
+};
+
+export const getFilter = (query, fields = []) => {
+    const filters = {};
+
+    fields.forEach((field) => {
+        if (query[field]) {
+            filters[field] = {
+                contains: query[field],
+                mode: "insensitive",
+            };
+        }
+    });
+
+    return filters;
 };

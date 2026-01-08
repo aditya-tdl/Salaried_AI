@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState, useCallback } from "react";
 import {
     Box,
@@ -17,34 +18,55 @@ import {
     Avatar,
     Chip,
 } from "@mui/material";
-import {
-    Search as SearchIcon,
-    Person as PersonIcon,
-} from "@mui/icons-material";
+import { Search as SearchIcon, Person as PersonIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllUsers } from "@/components/ReduxToolkit/Slices/adminSlice";
 
+/* ===========================
+   Debounce Hook
+=========================== */
+
+const useDebounce = (value, delay = 300) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+
+    return debouncedValue;
+};
+
+/* ===========================
+   Component
+=========================== */
+
 export default function UsersPage() {
     const dispatch = useDispatch();
-    const { users, pagination, loading, error } = useSelector((state) => state.admin);
+    const { users, pagination, loading } = useSelector(
+        (state) => state.admin
+    );
 
     const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const loadUsers = useCallback(() => {
-        dispatch(fetchAllUsers({
-            page: page + 1,
-            limit: rowsPerPage,
-            search: searchTerm
-        }));
-    }, [dispatch, page, rowsPerPage, searchTerm]);
+        dispatch(
+            fetchAllUsers({
+                page: page + 1,
+                limit: rowsPerPage,
+                search: debouncedSearch,
+            })
+        );
+    }, [dispatch, page, rowsPerPage, debouncedSearch]);
 
     useEffect(() => {
         loadUsers();
     }, [loadUsers]);
 
-    const handleChangePage = (event, newPage) => {
+    const handleChangePage = (_, newPage) => {
         setPage(newPage);
     };
 
@@ -60,22 +82,27 @@ export default function UsersPage() {
 
     return (
         <Box sx={{ p: { xs: 2, md: 4 } }}>
-            <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
-                <Typography variant="h4" fontWeight="800" sx={{ color: "#1B2559", letterSpacing: "-1px" }}>
+            {/* Header */}
+            <Box
+                sx={{
+                    mb: 4,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 2,
+                }}
+            >
+                <Typography variant="h4" fontWeight={800} color="#1B2559">
                     User Management
                 </Typography>
+
                 <TextField
                     size="small"
-                    placeholder="Search name, email, or mobile..."
+                    placeholder="Search name, email or mobile"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    sx={{
-                        width: { xs: "100%", sm: "300px" },
-                        "& .MuiOutlinedInput-root": {
-                            borderRadius: "12px",
-                            backgroundColor: "white",
-                        }
-                    }}
+                    sx={{ width: { xs: "100%", sm: 300 } }}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -86,84 +113,63 @@ export default function UsersPage() {
                 />
             </Box>
 
-            <TableContainer component={Paper} sx={{ borderRadius: "20px", boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.03)", border: "1px solid #F1F1F1", overflow: "hidden" }}>
-                <Table sx={{ minWidth: 650 }}>
+            {/* Table */}
+            <TableContainer
+                component={Paper}
+                sx={{ borderRadius: 3, overflow: "hidden" }}
+            >
+                <Table>
                     <TableHead sx={{ backgroundColor: "#F4F7FE" }}>
                         <TableRow>
-                            <TableCell sx={{ fontWeight: "700", color: "#A3AED0" }}>USER</TableCell>
-                            <TableCell sx={{ fontWeight: "700", color: "#A3AED0" }}>EMAIL</TableCell>
-                            <TableCell sx={{ fontWeight: "700", color: "#A3AED0" }}>MOBILE</TableCell>
-                            <TableCell sx={{ fontWeight: "700", color: "#A3AED0" }}>GENDER</TableCell>
-                            <TableCell sx={{ fontWeight: "700", color: "#A3AED0" }}>JOINED DATE</TableCell>
+                            <TableCell>USER</TableCell>
+                            <TableCell>EMAIL</TableCell>
+                            <TableCell>MOBILE</TableCell>
+                            <TableCell>GENDER</TableCell>
+                            <TableCell>JOINED</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {loading && users.length === 0 ? (
+                        {users.length === 0 && !loading && (
                             <TableRow>
-                                <TableCell colSpan={5} padding="none">
-                                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-                                        <CircularProgress size={40} thickness={4} sx={{ color: "#4318FF" }} />
+                                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                                    No users found
+                                </TableCell>
+                            </TableRow>
+                        )}
+
+                        {users.map((user) => (
+                            <TableRow key={user.id} hover>
+                                <TableCell>
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                        <Avatar>
+                                            {user.name?.[0] || <PersonIcon />}
+                                        </Avatar>
+                                        {user.name}
                                     </Box>
                                 </TableCell>
-                            </TableRow>
-                        ) : users.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                                    <Typography variant="body1" fontWeight="600" color="text.secondary">
-                                        No users found
-                                    </Typography>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>{user.mobile || "—"}</TableCell>
+                                <TableCell>
+                                    <Chip label={user.gender || "N/A"} size="small" />
+                                </TableCell>
+                                <TableCell>
+                                    {new Date(user.created_at).toLocaleDateString()}
                                 </TableCell>
                             </TableRow>
-                        ) : (
-                            users.map((row) => (
-                                <TableRow key={row.id} hover sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                                    <TableCell>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                                            <Avatar sx={{ width: 32, height: 32, backgroundColor: "#F4F7FE", color: "#4318FF", fontSize: "0.85rem", fontWeight: "700" }}>
-                                                {row.name?.charAt(0).toUpperCase() || <PersonIcon fontSize="small" />}
-                                            </Avatar>
-                                            <Typography variant="body2" fontWeight="700" color="#1B2559">
-                                                {row.name}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#1B2559", fontWeight: "600", fontSize: "0.85rem" }}>{row.email}</TableCell>
-                                    <TableCell sx={{ color: "#1B2559", fontWeight: "600", fontSize: "0.85rem" }}>{row.mobile || "N/A"}</TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            label={row.gender || "Not Set"}
-                                            size="small"
-                                            sx={{
-                                                fontWeight: "700",
-                                                fontSize: "0.75rem",
-                                                backgroundColor: row.gender?.toLowerCase() === "male" ? "#E3F2FD" : row.gender?.toLowerCase() === "female" ? "#FCE4EC" : "#F4F7FE",
-                                                color: row.gender?.toLowerCase() === "male" ? "#1976D2" : row.gender?.toLowerCase() === "female" ? "#C2185B" : "#A3AED0",
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={{ color: "#A3AED0", fontWeight: "600", fontSize: "0.85rem" }}>
-                                        {new Date(row.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
+                        ))}
                     </TableBody>
+
+
                 </Table>
+
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
                     component="div"
                     count={pagination.total}
-                    rowsPerPage={rowsPerPage}
                     page={page}
+                    rowsPerPage={rowsPerPage}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{
-                        borderTop: "1px solid #F1F1F1",
-                        "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                            color: "#A3AED0",
-                            fontWeight: "600",
-                        }
-                    }}
+                    rowsPerPageOptions={[5, 10, 25]}
                 />
             </TableContainer>
         </Box>

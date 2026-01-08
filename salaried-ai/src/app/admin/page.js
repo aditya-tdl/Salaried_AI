@@ -66,7 +66,7 @@ export default function AdminDashboard() {
                 <Grid item xs={12} sm={6} md={3}>
                     <StatCard
                         title="Total Revenue"
-                        value="$45,285"
+                        value="₹45,285"
                         icon={<AttachMoney />}
                         color="#05CD99"
                     />

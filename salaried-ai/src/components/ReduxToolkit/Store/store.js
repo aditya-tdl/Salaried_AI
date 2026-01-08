@@ -20,7 +20,7 @@ import cartReducer from "../Slices/CartSlice";
 import guestCartSlice from "../Slices/guestCartSlice";
 import loginModalSlice from "../Slices/LoginModalSlice";
 import cartDrawerSlice from "../Slices/CartDrawerSlice";
-import offerDrawerSlice from "../Slices/OfferDrawerSlice"
+import offerDrawerSlice from "../Slices/OfferDrawerSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,

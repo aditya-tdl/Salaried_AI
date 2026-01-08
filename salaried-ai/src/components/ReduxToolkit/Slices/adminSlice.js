@@ -2,29 +2,39 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { baseUrl } from "../../baseUrl/BaseUrl";
 
+/* ===========================
+   Async Thunk
+=========================== */
+
 export const fetchAllUsers = createAsyncThunk(
   "admin/fetchAllUsers",
-  async (
-    { page = 1, limit = 10, search = "" },
-    { getState, rejectWithValue }
-  ) => {
+  async ({ page = 1, limit = 10, search = "" }, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState();
-      console.log("auth", auth);
+
       const response = await axios.get(`${baseUrl}/users`, {
-        params: { page, limit, name: search, email: search, mobile: search },
+        params: {
+          page,
+          limit,
+          search: search || undefined, // IMPORTANT
+        },
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
       });
+
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Something went wrong"
+        error.response?.data?.message || "Failed to fetch users"
       );
     }
   }
 );
+
+/* ===========================
+   Slice
+=========================== */
 
 const adminSlice = createSlice({
   name: "admin",
@@ -43,12 +53,22 @@ const adminSlice = createSlice({
     clearAdminError: (state) => {
       state.error = null;
     },
+    resetUsers: (state) => {
+      state.users = [];
+      state.pagination = {
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAllUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
+        // ❌ DO NOT clear users here
       })
       .addCase(fetchAllUsers.fulfilled, (state, action) => {
         state.loading = false;
@@ -62,5 +82,5 @@ const adminSlice = createSlice({
   },
 });
 
-export const { clearAdminError } = adminSlice.actions;
+export const { clearAdminError, resetUsers } = adminSlice.actions;
 export default adminSlice.reducer;

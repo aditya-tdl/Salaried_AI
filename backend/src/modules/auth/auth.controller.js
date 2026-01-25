@@ -47,8 +47,8 @@ export const register = catchAsync(async (req, res, next) => {
         mobile: user.mobile,
         token,
       },
-      "User registered successfully"
-    )
+      "User registered successfully",
+    ),
   );
 });
 
@@ -89,22 +89,22 @@ export const registerAdmin = catchAsync(async (req, res, next) => {
       new ApiResponse(
         201,
         { id: user.id, name: user.name, email: user.email, role: user.role },
-        "Admin registered successfully"
-      )
+        "Admin registered successfully",
+      ),
     );
 });
 
 export const login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
 
-  if (!email || !password) {
-    throw new ApiError(400, "Email and password are required");
+  if (!username || !password) {
+    throw new ApiError(400, "Username and password are required");
   }
-
+  // console.log("data", req.body);
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email: username },
   });
-
+  // console.log("user", user);
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw new ApiError(401, "Invalid email or password");
   }
@@ -117,8 +117,8 @@ export const login = catchAsync(async (req, res, next) => {
     .json(
       new ApiResponse(
         200,
-        { id: user.id, name: user.name, email: user.email, token },
-        "Login successful"
-      )
+        { id: user.id, name: user.name, email: user.email, role: user.role, token },
+        "Login successful",
+      ),
     );
 });

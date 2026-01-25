@@ -21,29 +21,35 @@ import {
 } from "@mui/icons-material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/components/ReduxToolkit/Slices/AuthSlice";
 import { openSnackbar } from "@/components/ReduxToolkit/Slices/snackbarSlice";
 
 const DRAWER_WIDTH = 280;
 
+
 const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
-    { text: "Users", icon: <PeopleIcon />, path: "/admin/users" },
-    // { text: "Webinars", icon: <EventIcon />, path: "/admin/webinars" },
-    // { text: "Newsletter", icon: <NewspaperIcon />, path: "/admin/newsletter" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+    { text: "Users", icon: <PeopleIcon />, path: "/dashboard/users" },
+    { text: "Webinars", icon: <EventIcon />, path: "/dashboard/webinars" },
+    { text: "Newsletters", icon: <NewspaperIcon />, path: "/dashboard/newsletter" },
     // { text: "Settings", icon: <SettingsIcon />, path: "/admin/settings" },
+];
+const userMenuItems = [
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+
 ];
 
 const Sidebar = () => {
     const pathname = usePathname();
     const dispatch = useDispatch();
     const router = useRouter();
-
+    const { isAuthenticated, user, role } = useSelector((state) => state.auth);
     const handleLogout = () => {
         dispatch(logout());
         dispatch(openSnackbar({ message: "Logged out successfully!", severity: "success" }));
-        router.push("/admin-center-auth");
+        // router.push("/admin-center-auth");
+        router.push("/login");
     };
 
     return (
@@ -83,13 +89,13 @@ const Sidebar = () => {
                         Salaried AI
                     </Typography>
                 </Box>
-                <Typography variant="caption" sx={{ color: "#A3AED0", fontWeight: "600", ml: 0.5 }}>
+                {user.role === 'ADMIN' && <Typography variant="caption" sx={{ color: "#A3AED0", fontWeight: "600", ml: 0.5 }}>
                     ADMIN MANAGEMENT
-                </Typography>
+                </Typography>}
             </Box>
 
             <List sx={{ px: 2, mt: 2 }}>
-                {menuItems.map((item) => {
+                {(user.role === 'ADMIN' ? menuItems : userMenuItems).map((item) => {
                     const isActive = pathname === item.path;
                     return (
                         <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>

@@ -145,6 +145,32 @@ exports.Prisma.Subscription_planScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.WebinarsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  agenda: 'agenda',
+  speakers: 'speakers',
+  duration: 'duration',
+  platform: 'platform',
+  link: 'link',
+  type: 'type',
+  price: 'price',
+  capacity: 'capacity',
+  created_at: 'created_at',
+  image_key: 'image_key',
+  image_url: 'image_url',
+  updated_at: 'updated_at',
+  webinar_date: 'webinar_date',
+  webinar_time: 'webinar_time'
+};
+
+exports.Prisma.User_webinarScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  webinar_id: 'webinar_id',
+  joined_at: 'joined_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -173,9 +199,16 @@ exports.subscription_status = exports.$Enums.subscription_status = {
   COMPLETED: 'COMPLETED'
 };
 
+exports.WebinarType = exports.$Enums.WebinarType = {
+  Free: 'Free',
+  Paid: 'Paid'
+};
+
 exports.Prisma.ModelName = {
   user: 'user',
-  subscription_plan: 'subscription_plan'
+  subscription_plan: 'subscription_plan',
+  webinars: 'webinars',
+  user_webinar: 'user_webinar'
 };
 
 /**

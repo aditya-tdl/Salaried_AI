@@ -175,6 +175,24 @@ export default function Navbar() {
                 >
                   Start @ ₹49
                 </Button>
+
+                <Button
+                  component={Link}
+                  href="/login"
+                  sx={{
+                    color: "#374151",
+                    textTransform: "none",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    px: 2,
+                    "&:hover": {
+                      color: "#7c3aed",
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                >
+                  Login
+                </Button>
               </Box>
             </>
           )}

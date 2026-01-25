@@ -1,72 +1,85 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
-// Old Local Datasource (Commented for Neon Migration)
-// datasource db {
-//   provider = "postgresql"
-//   schemas  = ["public", "uam", "subscription"]
-//   url      = env("DATABASE_URL_OLD_LOCAL") 
-// }
-
-// New Neon Datasource
 datasource db {
-  provider  = "postgresql"
-  schemas   = ["public", "uam", "subscription"]
+  provider = "postgresql"
+  schemas  = ["event", "public", "subscription", "uam"]
 }
-
-/* =========================
-   USER & ACCESS MANAGEMENT
-   ========================= */
 
 model user {
-  id            Int                 @id @default(autoincrement())
-  name          String
-  email         String              @unique
-  gender        String
-  mobile        String              @unique
-  password      String
-  role          role                @default(USER)
-  created_at    DateTime            @default(now())
+  id           Int                @id @default(autoincrement())
+  name         String
+  email        String             @unique
+  gender       String
+  mobile       String             @unique
+  password     String
+  role         role               @default(USER)
+  created_at   DateTime           @default(now())
+  subscription subscription_plan?
+  user_webinars user_webinar[]
 
-  subscription  subscription_plan?
-
-  @@schema("uam")
   @@index([email])
   @@index([mobile])
+  @@schema("uam")
 }
 
-/* =========================
-   SUBSCRIPTION DOMAIN
-   ========================= */
-
 model subscription_plan {
-  id                       Int                    @id @default(autoincrement())
-  user_id                  Int                    @unique
+  id                       Int                 @id @default(autoincrement())
+  user_id                  Int                 @unique
   razorpay_plan_id         String
-  razorpay_subscription_id String                 @unique
+  razorpay_subscription_id String              @unique
   razorpay_customer_id     String?
-  status                   subscription_status    @default(CREATED)
-
+  status                   subscription_status @default(CREATED)
   start_at                 DateTime?
   end_at                   DateTime?
-  next_charge_at            DateTime?
+  next_charge_at           DateTime?
+  created_at               DateTime            @default(now())
+  updated_at               DateTime            @updatedAt
+  user                     user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  created_at               DateTime               @default(now())
-  updated_at               DateTime               @updatedAt
-
-  user                     user                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@schema("subscription")
   @@index([user_id])
   @@index([razorpay_subscription_id])
   @@index([status])
+  @@schema("subscription")
 }
 
-/* =========================
-   ENUMS
-   ========================= */
+model webinars {
+  id           BigInt      @id @default(autoincrement())
+  title        String
+  agenda       String?
+  speakers     String?
+  duration     Int         @default(90)
+  platform     String      @default("Zoom")
+  link         String?
+  type         WebinarType @default(Free)
+  price        Decimal?    @db.Decimal(10, 2)
+  capacity     Int         @default(100)
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+  image_key    String?
+  image_url    String?
+  updated_at   DateTime    @updatedAt @db.Timestamptz(6)
+  webinar_date DateTime    @db.Date
+  webinar_time DateTime    @db.Time(6)
+  user_webinars user_webinar[]
+
+  @@map("webinars")
+  @@schema("event")
+}
+
+model user_webinar {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  webinar_id BigInt
+  joined_at  DateTime @default(now())
+
+  user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  webinar webinars @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, webinar_id])
+  @@schema("event")
+}
 
 enum subscription_status {
   CREATED
@@ -75,11 +88,20 @@ enum subscription_status {
   PAUSED
   CANCELLED
   COMPLETED
-   @@schema("public")
+
+  @@schema("public")
 }
 
 enum role {
   USER
   ADMIN
-   @@schema("public")
+
+  @@schema("public")
+}
+
+enum WebinarType {
+  Free
+  Paid
+
+  @@schema("public")
 }

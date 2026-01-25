@@ -36,18 +36,30 @@ export const createSubscription = catchAsync(async (req, res) => {
   });
 
   // 3️⃣ Save subscription in DB
+  const now = new Date();
+  const endAt = new Date(now);
+  endAt.setDate(endAt.getDate() + 30);
+  const nextChargeAt = new Date(now);
+  nextChargeAt.setDate(nextChargeAt.getDate() + 31);
+
   const dbSubscription = await prisma.subscription_plan.upsert({
     where: { user_id: userId },
     update: {
       razorpay_subscription_id: subscription.id,
       razorpay_plan_id: process.env.RAZORPAY_MONTHLY_PLAN_ID,
       status: "CREATED",
+      start_at: now,
+      end_at: endAt,
+      next_charge_at: nextChargeAt,
     },
     create: {
       user_id: userId,
       razorpay_subscription_id: subscription.id,
       razorpay_plan_id: process.env.RAZORPAY_MONTHLY_PLAN_ID,
       status: "CREATED",
+      start_at: now,
+      end_at: endAt,
+      next_charge_at: nextChargeAt,
     },
   });
 

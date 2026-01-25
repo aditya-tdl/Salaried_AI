@@ -40,6 +40,11 @@ export const getAllUsers = catchAsync(async (req, res) => {
                 gender: true,
                 mobile: true,
                 created_at: true,
+                subscription: {
+                    select: {
+                        status: true,
+                    },
+                },
             },
         }),
         prisma.user.count({ where }),
@@ -60,5 +65,31 @@ export const getAllUsers = catchAsync(async (req, res) => {
             "Users fetched successfully"
         )
     );
+});
+
+export const getSubscriptionPlan = catchAsync(async (req, res) => {
+    const { userId } = req.params;
+
+    const subscription = await prisma.subscription_plan.findUnique({
+        where: {
+            user_id: parseInt(userId),
+        },
+    });
+
+    if (!subscription) {
+        return res
+            .status(404)
+            .json(new ApiResponse(404, null, "Subscription not found"));
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                subscription,
+                "Subscription fetched successfully"
+            )
+        );
 });
 

@@ -117,6 +117,32 @@ exports.Prisma.Subscription_planScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.WebinarsScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  agenda: 'agenda',
+  speakers: 'speakers',
+  duration: 'duration',
+  platform: 'platform',
+  link: 'link',
+  type: 'type',
+  price: 'price',
+  capacity: 'capacity',
+  created_at: 'created_at',
+  image_key: 'image_key',
+  image_url: 'image_url',
+  updated_at: 'updated_at',
+  webinar_date: 'webinar_date',
+  webinar_time: 'webinar_time'
+};
+
+exports.Prisma.User_webinarScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  webinar_id: 'webinar_id',
+  joined_at: 'joined_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -145,9 +171,16 @@ exports.role = exports.$Enums.role = {
   ADMIN: 'ADMIN'
 };
 
+exports.WebinarType = exports.$Enums.WebinarType = {
+  Free: 'Free',
+  Paid: 'Paid'
+};
+
 exports.Prisma.ModelName = {
   user: 'user',
-  subscription_plan: 'subscription_plan'
+  subscription_plan: 'subscription_plan',
+  webinars: 'webinars',
+  user_webinar: 'user_webinar'
 };
 /**
  * Create the Client
@@ -157,10 +190,10 @@ const config = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\n// Old Local Datasource (Commented for Neon Migration)\n// datasource db {\n//   provider = \"postgresql\"\n//   schemas  = [\"public\", \"uam\", \"subscription\"]\n//   url      = env(\"DATABASE_URL_OLD_LOCAL\") \n// }\n\n// New Neon Datasource\ndatasource db {\n  provider = \"postgresql\"\n  schemas  = [\"public\", \"uam\", \"subscription\"]\n}\n\n/**\n * =========================\n * USER & ACCESS MANAGEMENT\n * =========================\n */\n\nmodel user {\n  id         Int      @id @default(autoincrement())\n  name       String\n  email      String   @unique\n  gender     String\n  mobile     String   @unique\n  password   String\n  role       role     @default(USER)\n  created_at DateTime @default(now())\n\n  subscription subscription_plan?\n\n  @@index([email])\n  @@index([mobile])\n  @@schema(\"uam\")\n}\n\n/**\n * =========================\n * SUBSCRIPTION DOMAIN\n * =========================\n */\n\nmodel subscription_plan {\n  id                       Int                 @id @default(autoincrement())\n  user_id                  Int                 @unique\n  razorpay_plan_id         String\n  razorpay_subscription_id String              @unique\n  razorpay_customer_id     String?\n  status                   subscription_status @default(CREATED)\n\n  start_at       DateTime?\n  end_at         DateTime?\n  next_charge_at DateTime?\n\n  created_at DateTime @default(now())\n  updated_at DateTime @updatedAt\n\n  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)\n\n  @@index([user_id])\n  @@index([razorpay_subscription_id])\n  @@index([status])\n  @@schema(\"subscription\")\n}\n\n/**\n * =========================\n * ENUMS\n * =========================\n */\n\nenum subscription_status {\n  CREATED\n  AUTHENTICATED\n  ACTIVE\n  PAUSED\n  CANCELLED\n  COMPLETED\n\n  @@schema(\"public\")\n}\n\nenum role {\n  USER\n  ADMIN\n\n  @@schema(\"public\")\n}\n"
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  schemas  = [\"event\", \"public\", \"subscription\", \"uam\"]\n}\n\nmodel user {\n  id            Int                @id @default(autoincrement())\n  name          String\n  email         String             @unique\n  gender        String\n  mobile        String             @unique\n  password      String\n  role          role               @default(USER)\n  created_at    DateTime           @default(now())\n  subscription  subscription_plan?\n  user_webinars user_webinar[]\n\n  @@index([email])\n  @@index([mobile])\n  @@schema(\"uam\")\n}\n\nmodel subscription_plan {\n  id                       Int                 @id @default(autoincrement())\n  user_id                  Int                 @unique\n  razorpay_plan_id         String\n  razorpay_subscription_id String              @unique\n  razorpay_customer_id     String?\n  status                   subscription_status @default(CREATED)\n  start_at                 DateTime?\n  end_at                   DateTime?\n  next_charge_at           DateTime?\n  created_at               DateTime            @default(now())\n  updated_at               DateTime            @updatedAt\n  user                     user                @relation(fields: [user_id], references: [id], onDelete: Cascade)\n\n  @@index([user_id])\n  @@index([razorpay_subscription_id])\n  @@index([status])\n  @@schema(\"subscription\")\n}\n\nmodel webinars {\n  id            BigInt         @id @default(autoincrement())\n  title         String\n  agenda        String?\n  speakers      String?\n  duration      Int            @default(90)\n  platform      String         @default(\"Zoom\")\n  link          String?\n  type          WebinarType    @default(Free)\n  price         Decimal?       @db.Decimal(10, 2)\n  capacity      Int            @default(100)\n  created_at    DateTime       @default(now()) @db.Timestamptz(6)\n  image_key     String?\n  image_url     String?\n  updated_at    DateTime       @updatedAt @db.Timestamptz(6)\n  webinar_date  DateTime       @db.Date\n  webinar_time  DateTime       @db.Time(6)\n  user_webinars user_webinar[]\n\n  @@map(\"webinars\")\n  @@schema(\"event\")\n}\n\nmodel user_webinar {\n  id         Int      @id @default(autoincrement())\n  user_id    Int\n  webinar_id BigInt\n  joined_at  DateTime @default(now())\n\n  user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)\n  webinar webinars @relation(fields: [webinar_id], references: [id], onDelete: Cascade)\n\n  @@unique([user_id, webinar_id])\n  @@schema(\"event\")\n}\n\nenum subscription_status {\n  CREATED\n  AUTHENTICATED\n  ACTIVE\n  PAUSED\n  CANCELLED\n  COMPLETED\n\n  @@schema(\"public\")\n}\n\nenum role {\n  USER\n  ADMIN\n\n  @@schema(\"public\")\n}\n\nenum WebinarType {\n  Free\n  Paid\n\n  @@schema(\"public\")\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"user\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"gender\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mobile\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"role\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subscription\",\"kind\":\"object\",\"type\":\"subscription_plan\",\"relationName\":\"subscription_planTouser\"}],\"dbName\":null},\"subscription_plan\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"razorpay_plan_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpay_subscription_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpay_customer_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"subscription_status\"},{\"name\":\"start_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"end_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"next_charge_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"user\",\"relationName\":\"subscription_planTouser\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"user\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"gender\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mobile\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"role\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"subscription\",\"kind\":\"object\",\"type\":\"subscription_plan\",\"relationName\":\"subscription_planTouser\"},{\"name\":\"user_webinars\",\"kind\":\"object\",\"type\":\"user_webinar\",\"relationName\":\"userTouser_webinar\"}],\"dbName\":null},\"subscription_plan\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"razorpay_plan_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpay_subscription_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"razorpay_customer_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"subscription_status\"},{\"name\":\"start_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"end_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"next_charge_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"user\",\"relationName\":\"subscription_planTouser\"}],\"dbName\":null},\"webinars\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"agenda\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"speakers\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"duration\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"platform\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"link\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"WebinarType\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"capacity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"created_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"image_key\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"image_url\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"updated_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"webinar_date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"webinar_time\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user_webinars\",\"kind\":\"object\",\"type\":\"user_webinar\",\"relationName\":\"user_webinarTowebinars\"}],\"dbName\":\"webinars\"},\"user_webinar\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user_id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"webinar_id\",\"kind\":\"scalar\",\"type\":\"BigInt\"},{\"name\":\"joined_at\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"user\",\"relationName\":\"userTouser_webinar\"},{\"name\":\"webinar\",\"kind\":\"object\",\"type\":\"webinars\",\"relationName\":\"user_webinarTowebinars\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
   getRuntime: async () => require('./query_compiler_bg.js'),

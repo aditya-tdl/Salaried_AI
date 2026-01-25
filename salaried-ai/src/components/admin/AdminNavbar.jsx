@@ -18,11 +18,12 @@ import {
 } from "@mui/icons-material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
 
 const AdminNavbar = () => {
     const pathname = usePathname();
     const pathnames = pathname.split("/").filter((x) => x);
-
+    const { isAuthenticated, user, role } = useSelector((state) => state.auth);
     return (
         <AppBar
             position="sticky"
@@ -51,7 +52,7 @@ const AdminNavbar = () => {
                                     cursor: "pointer",
                                 }}
                             >
-                                Admin
+                                {user.role === "ADMIN" ? 'Admin' : 'User'}
                             </Typography>
                         </Link>
                         {pathnames.map((value, index) => {
@@ -95,24 +96,24 @@ const AdminNavbar = () => {
                 </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <IconButton sx={{ color: "#A3AED0", backgroundColor: "#F4F7FE", borderRadius: "10px", mr: 1 }}>
+                    {/* <IconButton sx={{ color: "#A3AED0", backgroundColor: "#F4F7FE", borderRadius: "10px", mr: 1 }}>
                         <SearchIcon fontSize="small" />
-                    </IconButton>
+                    </IconButton> */}
 
-                    <IconButton sx={{ color: "#A3AED0", backgroundColor: "#F4F7FE", borderRadius: "10px", mr: 1 }}>
+                    {/* <IconButton sx={{ color: "#A3AED0", backgroundColor: "#F4F7FE", borderRadius: "10px", mr: 1 }}>
                         <Badge badgeContent={4} color="error" sx={{ "& .MuiBadge-badge": { fontSize: "0.6rem" } }}>
                             <NotificationsIcon fontSize="small" />
                         </Badge>
-                    </IconButton>
+                    </IconButton> */}
 
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: 1, backgroundColor: "#F4F7FE", p: "6px 16px", borderRadius: "30px" }}>
                         <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
                             <Typography variant="body2" fontWeight="700" sx={{ color: "#1B2559", lineHeight: 1.2 }}>
-                                Admin User
+                                {user?.name}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: "#A3AED0", fontWeight: "600" }}>
-                                Super Admin
-                            </Typography>
+                            {/* <Typography variant="caption" sx={{ color: "#A3AED0", fontWeight: "600" }}>
+                                {user?.role}
+                            </Typography> */}
                         </Box>
                         <Avatar
                             sx={{
@@ -123,7 +124,7 @@ const AdminNavbar = () => {
                                 fontWeight: "bold",
                             }}
                         >
-                            AD
+                            {user?.name?.charAt(0)}
                         </Avatar>
                     </Box>
                 </Box>

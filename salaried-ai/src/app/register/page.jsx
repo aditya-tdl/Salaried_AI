@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import GlobalWrapper from '@/components/layouts/GlobalWrapper';
 import {
     Box,
@@ -31,15 +31,17 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Script from "next/script";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { baseUrl } from '@/components/baseUrl/BaseUrl';
 import { openSnackbar } from '@/components/ReduxToolkit/Slices/snackbarSlice';
+import { updateProfile } from '@/components/ReduxToolkit/Slices/UserSlice';
 
 export default function RegisterPage() {
     const theme = useTheme();
     const dispatch = useDispatch();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const { user } = useSelector((state) => state.user);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -53,7 +55,7 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+    console.log("user", user)
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -120,13 +122,14 @@ export default function RegisterPage() {
     };
 
     // Master Card Test Details:
-    // Card Number: 5104 0600 0000 0008
+    // Card Number: 5267 3181 8797 5449
     // Expiry: Any future date
     // CVV: 123
     // OTP: 123456
 
     /* ---------------- Razorpay TEST MODE (Frontend Only) ---------------- */
     const handlePayment = async (data) => {
+        setLoading(true);
         try {
             // Step 1: Create payment on backend
             const res = await fetch(`${baseUrl}/payment/create`, {
@@ -138,6 +141,7 @@ export default function RegisterPage() {
 
             if (!res.ok) {
                 throw new Error(`HTTP error! Status: ${res.status}`);
+                setLoading(false);
             }
 
             const paymentData = await res.json();
@@ -159,14 +163,15 @@ export default function RegisterPage() {
                 key: "rzp_test_RBSer2L2HUkTuM", // public key only
                 subscription_id: subscriptionId, // 🔥 IMPORTANT
                 name: "Salaried.ai",
-                description: "₹49 / month subscription",
+                description: "₹2 / weekly subscription",
                 handler: function (response) {
                     // DO NOT trust this fully - verify on backend
                     console.log("Payment response:", response);
 
                     // Optional: Verify payment on backend here
                     // verifyPaymentOnBackend(response);
-
+                    setLoading(false);
+                    dispatch(updateProfile(null))
                     dispatch(openSnackbar({
                         message: "Payment successful 🎉",
                         severity: "success"
@@ -185,6 +190,8 @@ export default function RegisterPage() {
                 },
                 "modal": {
                     "ondismiss": function () {
+                        dispatch(updateProfile(data))
+
                         console.log("Payment modal closed by user");
                         dispatch(openSnackbar({
                             message: "Payment cancelled",
@@ -213,6 +220,7 @@ export default function RegisterPage() {
             // Add error handler for Razorpay
             rzp.on('payment.failed', function (response) {
                 console.error('Payment failed:', response.error);
+                dispatch(updateProfile(data))
                 dispatch(openSnackbar({
                     message: `Payment failed: ${response.error.description || 'Unknown error'}`,
                     severity: "error"
@@ -365,14 +373,16 @@ export default function RegisterPage() {
                             flexDirection: 'column',
                             justifyContent: 'center'
                         }}>
-                            <Typography variant="h5" fontWeight={800} color="#111827" sx={{ mb: 1 }}>
+                            {user === null ? <Typography variant="h5" fontWeight={800} color="#111827" sx={{ mb: 1 }}>
                                 Create Account
-                            </Typography>
-                            <Typography variant="body2" color="#6b7280" sx={{ mb: 4 }}>
+                            </Typography> : <Typography variant="h5" fontWeight={800} color="#111827" sx={{ mb: 1 }}>
+                                Hi {user?.name}, please continue your payment to activate premium access.
+                            </Typography>}
+                            {user === null && <Typography variant="body2" color="#6b7280" sx={{ mb: 4 }}>
                                 Enter your details to get started with your premium access.
-                            </Typography>
+                            </Typography>}
 
-                            <Box component="form" onSubmit={handleSubmit}>
+                            {user === null && <Box component="form" onSubmit={handleSubmit}>
                                 <Stack spacing={2.5}>
                                     <TextField
                                         fullWidth
@@ -538,7 +548,34 @@ export default function RegisterPage() {
                                     </Typography> */}
 
                                 </Stack>
-                            </Box>
+                            </Box>}
+                            {user !== null && <Button
+                                fullWidth
+                                disabled={loading}
+                                onClick={() => handlePayment(user)}
+                                sx={{
+                                    mt: 2,
+                                    background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                                    color: '#fff',
+                                    py: 1.8,
+                                    borderRadius: 3,
+                                    fontWeight: 700,
+                                    fontSize: 16,
+                                    textTransform: 'none',
+                                    boxShadow: '0 10px 25px -5px rgba(124,58,237,0.4)',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        boxShadow: '0 15px 30px -5px rgba(124,58,237,0.5)',
+                                        transform: 'translateY(-2px)'
+                                    },
+                                    '&:disabled': {
+                                        background: '#d1d5db',
+                                        boxShadow: 'none'
+                                    }
+                                }}
+                            >
+                                {loading ? 'Processing...' : 'Pay ₹2 & Register'}
+                            </Button>}
                         </Box>
                     </Paper>
                 </Box>

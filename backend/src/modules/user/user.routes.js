@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsers } from "./user.controller.js";
+import { getAllUsers, getSubscriptionPlan } from "./user.controller.js";
 import { admin, protect } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -11,6 +11,13 @@ router.get(
   protect,
   admin,
   getAllUsers
+);
+
+router.get(
+  "/subscription/:userId",
+  protect,
+  admin,
+  getSubscriptionPlan
 );
 
 export default router;

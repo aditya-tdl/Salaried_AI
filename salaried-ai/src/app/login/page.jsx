@@ -1,33 +1,42 @@
-"use client";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+'use client';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import GlobalWrapper from '@/components/layouts/GlobalWrapper';
+import ClientOnly from '../signup/ClientOnly';
+import useApi from '@/components/Hooks/useApi';
+import { login } from '@/components/ReduxToolkit/Slices/AuthSlice';
+import { baseUrl } from '@/components/baseUrl/BaseUrl';
+import axios from 'axios';
+import { hideLoader, showLoader } from '@/components/ReduxToolkit/Slices/loaderSlice';
+import { openSnackbar } from '@/components/ReduxToolkit/Slices/snackbarSlice';
 import {
   Box,
-  Button,
-  TextField,
   Typography,
-  Link,
-  InputAdornment,
+  TextField,
+  Button,
+  Stack,
+  Paper,
   IconButton,
-  CircularProgress,
-} from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import GoogleIcon from "@mui/icons-material/Google";
-import AppleIcon from "@mui/icons-material/Apple";
-import GlobalWrapper from "@/components/layouts/GlobalWrapper";
-import ClientOnly from "../signup/ClientOnly";
-import useApi from "@/components/Hooks/useApi";
-import { login } from "@/components/ReduxToolkit/Slices/AuthSlice";
-import { baseUrl } from "@/components/baseUrl/BaseUrl";
-import axios from "axios";
-
+  InputAdornment,
+  Link,
+  useMediaQuery,
+  useTheme,
+  CircularProgress
+} from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 export default function Login() {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const router = useRouter();
   const { loading: globalLoading } = useSelector((state) => state.auth);
-  const api = useApi();
+
+  // Check if user is on mobile to adjust layout if needed (MUI Grid/Flex handles most of it)
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [formData, setFormData] = useState({
     email: "",
@@ -75,45 +84,51 @@ export default function Login() {
       dispatch(hideLoader());
       return;
     }
-    console.log("login page")
+
     try {
-      const response = await axios.post(`${baseUrl}/api/auth/login`, {
+      const response = await axios.post(`${baseUrl}/auth/login`, {
         username: formData.email,
         password: formData.password,
       });
-      console.log("API response:", response.data);
 
-      if (response.data.status) {
+      // dispatch(hideLoader()); // Keep loader until redirect or error? remove to prevent flicker
+      console.log("data", response.data);
+      if (response.data.success) {
         dispatch(
           login({
             user: {
-              name: `${response.data.data.first_name} ${response.data.data.last_name}`,
+              name: response.data.data.name,
               email: response.data.data.email,
-              role: response.data.data.role_name,
-              id: response.data.data.user_id,
+              role: response.data.data.role,
+              id: response.data.data.id,
             },
-            token: response.data.token,
+            token: response.data.data.token,
           })
         );
-        dispatch(hideLoader());
-        dispatch(
-          showSnackbar({
-            severity: "success",
-            message: "Logged in successfully",
-          })
-        );
+
+        dispatch(openSnackbar({
+          message: "Logged in successfully",
+          severity: "success"
+        }));
 
         setFormData({ email: "", password: "" });
-        router.push("/profile");
-      } else {
-        setApiError("Invalid login credentials.");
+        dispatch(hideLoader());
 
-        // dispatch(hideLoader());
+        // Redirect based on role
+        router.push("/dashboard");
+
+      } else {
+        dispatch(hideLoader());
+        setApiError("Invalid login credentials.");
       }
     } catch (error) {
       dispatch(hideLoader());
       console.error("Login error:", error);
       setApiError(error.response?.data?.message || "Something went wrong");
+      dispatch(openSnackbar({
+        message: error.response?.data?.message || "Login failed",
+        severity: "error"
+      }));
     }
   };
 
@@ -122,150 +137,218 @@ export default function Login() {
       <ClientOnly>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-            background: "linear-gradient(145deg, #ffffff, #f5f7fa)",
-            padding: 2,
+            minHeight: '95vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            py: { xs: 4, md: 2 },
+            px: { xs: 2, md: 4 },
+            background: 'linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%)'
           }}
         >
-          <Box
+          <Paper
+            elevation={0}
             sx={{
-              width: "100%",
-              maxWidth: 400,
-              padding: 4,
-              backgroundColor: "#fff",
-              borderRadius: 2,
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              textAlign: "center",
-              position: "relative",
+              width: '100%',
+              maxWidth: 1100,
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              animation: 'fadeUp 0.8s ease-out forwards',
             }}
           >
-            {globalLoading && (
-              <CircularProgress
-                size={40}
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  zIndex: 1,
-                }}
-              />
-            )}
-            <Box sx={{ opacity: globalLoading ? 0.5 : 1 }}>
-              <Typography variant="h4" gutterBottom>
-                Welcome Back
-              </Typography>
+            {/* LEFT SIDE: Promotional Content */}
+            <Box sx={{
+              flex: 1,
+              bgcolor: '#1e1b4b', // Dark purple/indigo
+              color: 'white',
+              p: { xs: 4, md: 6 },
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* Decorative Background Elements */}
+              <Box sx={{
+                position: 'absolute',
+                top: -50,
+                left: -50,
+                width: 200,
+                height: 200,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(124,58,237,0.4) 0%, rgba(124,58,237,0) 70%)',
+                filter: 'blur(40px)',
+              }} />
+              <Box sx={{
+                position: 'absolute',
+                bottom: -50,
+                right: -50,
+                width: 300,
+                height: 300,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, rgba(139,92,246,0) 70%)',
+                filter: 'blur(60px)',
+              }} />
 
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<GoogleIcon />}
-                sx={{
-                  mb: 2,
-                  py: 1.5,
-                  borderColor: "#e0e0e0",
-                  color: "#333",
-                  textTransform: "none",
-                  "&:hover": {
-                    borderColor: "#1976d2",
-                    backgroundColor: "#f0f4ff",
-                  },
-                }}
-              >
-                Sign in with Google
-              </Button>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.1)', px: 2, py: 0.5, borderRadius: 10, mb: 3 }}>
+                  <AutoAwesomeIcon sx={{ fontSize: 18, color: '#fbbf24' }} />
+                  <Typography variant="subtitle2" fontWeight={600} color="#fbbf24">
+                    Premium Access
+                  </Typography>
+                </Box>
 
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<AppleIcon />}
-                sx={{
-                  mb: 2,
-                  py: 1.5,
-                  borderColor: "#e0e0e0",
-                  color: "#333",
-                  textTransform: "none",
-                  "&:hover": {
-                    borderColor: "#000",
-                    backgroundColor: "#f0f4ff",
-                  },
-                }}
-              >
-                Sign in with Apple
-              </Button>
+                <Typography variant="h3" fontWeight={800} sx={{ mb: 1, fontSize: { xs: '2rem', md: '2.5rem' } }}>
+                  Unlock Your <br />
+                  <Box component="span" sx={{ color: '#a78bfa' }}>Career Potential</Box>
+                </Typography>
 
-              <Box sx={{ my: 2, color: "#666", fontSize: "0.9rem" }}>or</Box>
+                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.7)', mb: 4, fontSize: '1.1rem', lineHeight: 1.6 }}>
+                  Join the elite community of professionals accelerating their growth with Salaried.ai.
+                </Typography>
 
-              <Box
-                component="form"
-                onSubmit={handleSubmit}
-                sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-              >
-                <TextField
-                  name="email"
-                  label="Email"
-                  variant="outlined"
-                  fullWidth
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1 } }}
-                />
-                <TextField
-                  name="password"
-                  label="Password"
-                  type={showPassword ? "text" : "password"}
-                  variant="outlined"
-                  fullWidth
-                  value={formData.password}
-                  onChange={handleChange}
-                  error={!!errors.password}
-                  helperText={errors.password || apiError}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1 } }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={globalLoading}
-                  sx={{
-                    py: 1.5,
-                    backgroundColor: "#000",
-                    color: "#fff",
-                    textTransform: "none",
-                    "&:hover": {
-                      backgroundColor: "#333",
-                    },
-                  }}
-                >
-                  {globalLoading ? <CircularProgress size={24} /> : "Login"}
-                </Button>
+                <Stack spacing={2}>
+                  {[
+                    "Access to exclusive AI career tools",
+                    "Monthly expert webinars & workshops",
+                    "Premium community network access",
+                    "Priority support 24/7"
+                  ].map((feature, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <CheckCircleIcon sx={{ color: '#34d399', fontSize: 20 }} />
+                      <Typography variant="body2" fontWeight={500} sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                        {feature}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
               </Box>
-
-              <Typography variant="body2" sx={{ mt: 2, color: "#757575" }}>
-                <Link href="/forgot-password" underline="hover">
-                  Forgot password?
-                </Link>
-              </Typography>
             </Box>
-          </Box>
+
+            {/* RIGHT SIDE: Login Form */}
+            <Box sx={{
+              flex: 1.2,
+              bgcolor: '#fff',
+              p: { xs: 4, md: 6 },
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              {globalLoading && (
+                <CircularProgress
+                  size={40}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 10,
+                  }}
+                />
+              )}
+              <Box sx={{ opacity: globalLoading ? 0.5 : 1 }}>
+                <Typography variant="h5" fontWeight={800} color="#111827" sx={{ mb: 1 }}>
+                  Welcome Back
+                </Typography>
+                <Typography variant="body2" color="#6b7280" sx={{ mb: 4 }}>
+                  Please enter your email and password to sign in.
+                </Typography>
+
+                <Box component="form" onSubmit={handleSubmit}>
+                  <Stack spacing={2.5}>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      sx={{
+                        '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleChange}
+                      error={!!errors.password}
+                      helperText={errors.password || apiError}
+                      sx={{
+                        '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#f9fafb' },
+                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' }
+                      }}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                              {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+
+                    <Button
+                      type="submit"
+                      fullWidth
+                      disabled={globalLoading}
+                      sx={{
+                        mt: 2,
+                        background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                        color: '#fff',
+                        py: 1.8,
+                        borderRadius: 3,
+                        fontWeight: 700,
+                        fontSize: 16,
+                        textTransform: 'none',
+                        boxShadow: '0 10px 25px -5px rgba(124,58,237,0.4)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          boxShadow: '0 15px 30px -5px rgba(124,58,237,0.5)',
+                          transform: 'translateY(-2px)'
+                        },
+                        '&:disabled': {
+                          background: '#d1d5db',
+                          boxShadow: 'none'
+                        }
+                      }}
+                    >
+                      Sign In
+                    </Button>
+
+                    <Typography variant="body2" textAlign="center" color="#6b7280" sx={{ mt: 2 }}>
+                      <Link href="/forgot-password" underline="hover" sx={{ color: '#4f46e5', fontWeight: 600 }}>
+                        Forgot password?
+                      </Link>
+                    </Typography>
+                  </Stack>
+                </Box>
+              </Box>
+            </Box>
+          </Paper>
         </Box>
+        <style jsx global>{`
+                    @keyframes fadeUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                    }
+                `}</style>
       </ClientOnly>
     </GlobalWrapper>
   );

@@ -13,7 +13,7 @@ export default function AdminLayout({ children }) {
     useEffect(() => {
         // In a real app, you'd also check for role === 'admin'
         if (!isAuthenticated) {
-            router.push("/admin-center-auth");
+            router.push("/login");
         }
     }, [isAuthenticated, router]);
 

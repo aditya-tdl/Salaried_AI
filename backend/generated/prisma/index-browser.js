@@ -168,7 +168,8 @@ exports.Prisma.User_webinarScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   webinar_id: 'webinar_id',
-  joined_at: 'joined_at'
+  joined_at: 'joined_at',
+  status: 'status'
 };
 
 exports.Prisma.SortOrder = {
@@ -202,6 +203,12 @@ exports.subscription_status = exports.$Enums.subscription_status = {
 exports.WebinarType = exports.$Enums.WebinarType = {
   Free: 'Free',
   Paid: 'Paid'
+};
+
+exports.WebinarRegistrationStatus = exports.$Enums.WebinarRegistrationStatus = {
+  REGISTERED: 'REGISTERED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
 };
 
 exports.Prisma.ModelName = {

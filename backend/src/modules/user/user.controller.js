@@ -93,3 +93,61 @@ export const getSubscriptionPlan = catchAsync(async (req, res) => {
         );
 });
 
+export const getMySubscription = catchAsync(async (req, res) => {
+    const userId = req.user.id;
+
+    const subscription = await prisma.subscription_plan.findUnique({
+        where: {
+            user_id: Number(userId),
+        },
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                subscription || null,
+                "My subscription fetched successfully"
+            )
+        );
+});
+
+export const getMyWebinars = catchAsync(async (req, res) => {
+    const userId = req.user.id;
+
+    const userWebinars = await prisma.user_webinar.findMany({
+        where: {
+            user_id: Number(userId),
+        },
+        include: {
+            webinar: true,
+        },
+        orderBy: {
+            joined_at: "desc",
+        },
+    });
+
+    // Convert BigInt to string for each webinar
+    const serializedWebinars = userWebinars.map((uw) => ({
+        ...uw,
+        webinar_id: uw.webinar_id.toString(),
+        webinar: {
+            ...uw.webinar,
+            id: uw.webinar.id.toString(),
+            // Ensure other BigInts (like price if decimal?) are handled if necessary, 
+            // but Decimal is usually string in JSON or number. 
+            // Prisma Decimal is object, but JSON.stringify handles it usually or needs conversion.
+        },
+    }));
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                serializedWebinars,
+                "My webinars fetched successfully"
+            )
+        );
+});

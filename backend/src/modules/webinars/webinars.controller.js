@@ -78,6 +78,7 @@ export const getAllWebinars = catchAsync(async (req, res) => {
       created_at: "desc", // Latest created first
     },
   });
+  // const allWebinars = await prisma.$queryRaw`SELECT * FROM event.webinars ORDER BY created_at DESC`;
 
   return res
     .status(200)

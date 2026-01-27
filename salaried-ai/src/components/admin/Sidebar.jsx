@@ -37,7 +37,7 @@ const menuItems = [
 ];
 const userMenuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-
+    { text: "Webinars", icon: <EventIcon />, path: "/dashboard/available-webinars" },
 ];
 
 const Sidebar = () => {

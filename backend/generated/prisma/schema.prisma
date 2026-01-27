@@ -69,10 +69,11 @@ model webinars {
 }
 
 model user_webinar {
-  id         Int      @id @default(autoincrement())
+  id         Int                       @id @default(autoincrement())
   user_id    Int
   webinar_id BigInt
-  joined_at  DateTime @default(now())
+  joined_at  DateTime                  @default(now())
+  status     WebinarRegistrationStatus @default(REGISTERED)
 
   user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   webinar webinars @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
@@ -104,4 +105,12 @@ enum WebinarType {
   Paid
 
   @@schema("public")
+}
+
+enum WebinarRegistrationStatus {
+  REGISTERED
+  CANCELLED
+  COMPLETED
+
+  @@schema("event")
 }

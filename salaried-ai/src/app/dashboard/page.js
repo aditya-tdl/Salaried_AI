@@ -23,6 +23,7 @@ import {
 } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchAllUsers } from "@/components/ReduxToolkit/Slices/adminSlice";
+import UserDashboard from "@/components/UserPanel/UserDashboard";
 
 const StatCard = ({ title, value, icon, color }) => (
   <Paper
@@ -66,43 +67,7 @@ const StatCard = ({ title, value, icon, color }) => (
   </Paper>
 );
 
-const UserDashboard = ({ user }) => (
-  <Box sx={{ py: 2 }}>
-    <Typography
-      variant="h3"
-      fontWeight="800"
-      sx={{ mb: 1, color: "#1B2559", letterSpacing: "-1px" }}
-    >
-      Welcome back, {user?.name || "User"}!
-    </Typography>
-    <Typography variant="body1" sx={{ color: "#A3AED0", mb: 4 }}>
-      Here is an overview of your account.
-    </Typography>
 
-    <Grid container spacing={3}>
-      {/* Add user-specific widgets here */}
-      <Grid item xs={12} md={6}>
-        <Paper
-          sx={{
-            p: 4,
-            borderRadius: "20px",
-            border: "1px solid #F1F1F1",
-            boxShadow: "0px 10px 30px rgba(0,0,0,0.03)",
-          }}
-        >
-          <Typography
-            variant="h6"
-            fontWeight="700"
-            sx={{ mb: 2, color: "#1B2559" }}
-          >
-            My Activity
-          </Typography>
-          <Typography color="text.secondary">No recent activity.</Typography>
-        </Paper>
-      </Grid>
-    </Grid>
-  </Box>
-);
 
 const RecentUsersTable = ({ users }) => {
   return (

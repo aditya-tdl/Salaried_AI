@@ -65,6 +65,15 @@ export const WebinarType: {
 
 export type WebinarType = (typeof WebinarType)[keyof typeof WebinarType]
 
+
+export const WebinarRegistrationStatus: {
+  REGISTERED: 'REGISTERED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
+};
+
+export type WebinarRegistrationStatus = (typeof WebinarRegistrationStatus)[keyof typeof WebinarRegistrationStatus]
+
 }
 
 export type subscription_status = $Enums.subscription_status
@@ -78,6 +87,10 @@ export const role: typeof $Enums.role
 export type WebinarType = $Enums.WebinarType
 
 export const WebinarType: typeof $Enums.WebinarType
+
+export type WebinarRegistrationStatus = $Enums.WebinarRegistrationStatus
+
+export const WebinarRegistrationStatus: typeof $Enums.WebinarRegistrationStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -4869,6 +4882,7 @@ export namespace Prisma {
     user_id: number | null
     webinar_id: bigint | null
     joined_at: Date | null
+    status: $Enums.WebinarRegistrationStatus | null
   }
 
   export type User_webinarMaxAggregateOutputType = {
@@ -4876,6 +4890,7 @@ export namespace Prisma {
     user_id: number | null
     webinar_id: bigint | null
     joined_at: Date | null
+    status: $Enums.WebinarRegistrationStatus | null
   }
 
   export type User_webinarCountAggregateOutputType = {
@@ -4883,6 +4898,7 @@ export namespace Prisma {
     user_id: number
     webinar_id: number
     joined_at: number
+    status: number
     _all: number
   }
 
@@ -4904,6 +4920,7 @@ export namespace Prisma {
     user_id?: true
     webinar_id?: true
     joined_at?: true
+    status?: true
   }
 
   export type User_webinarMaxAggregateInputType = {
@@ -4911,6 +4928,7 @@ export namespace Prisma {
     user_id?: true
     webinar_id?: true
     joined_at?: true
+    status?: true
   }
 
   export type User_webinarCountAggregateInputType = {
@@ -4918,6 +4936,7 @@ export namespace Prisma {
     user_id?: true
     webinar_id?: true
     joined_at?: true
+    status?: true
     _all?: true
   }
 
@@ -5012,6 +5031,7 @@ export namespace Prisma {
     user_id: number
     webinar_id: bigint
     joined_at: Date
+    status: $Enums.WebinarRegistrationStatus
     _count: User_webinarCountAggregateOutputType | null
     _avg: User_webinarAvgAggregateOutputType | null
     _sum: User_webinarSumAggregateOutputType | null
@@ -5038,6 +5058,7 @@ export namespace Prisma {
     user_id?: boolean
     webinar_id?: boolean
     joined_at?: boolean
+    status?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
     webinar?: boolean | webinarsDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user_webinar"]>
@@ -5047,6 +5068,7 @@ export namespace Prisma {
     user_id?: boolean
     webinar_id?: boolean
     joined_at?: boolean
+    status?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
     webinar?: boolean | webinarsDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user_webinar"]>
@@ -5056,6 +5078,7 @@ export namespace Prisma {
     user_id?: boolean
     webinar_id?: boolean
     joined_at?: boolean
+    status?: boolean
     user?: boolean | userDefaultArgs<ExtArgs>
     webinar?: boolean | webinarsDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user_webinar"]>
@@ -5065,9 +5088,10 @@ export namespace Prisma {
     user_id?: boolean
     webinar_id?: boolean
     joined_at?: boolean
+    status?: boolean
   }
 
-  export type user_webinarOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "webinar_id" | "joined_at", ExtArgs["result"]["user_webinar"]>
+  export type user_webinarOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "webinar_id" | "joined_at" | "status", ExtArgs["result"]["user_webinar"]>
   export type user_webinarInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | userDefaultArgs<ExtArgs>
     webinar?: boolean | webinarsDefaultArgs<ExtArgs>
@@ -5092,6 +5116,7 @@ export namespace Prisma {
       user_id: number
       webinar_id: bigint
       joined_at: Date
+      status: $Enums.WebinarRegistrationStatus
     }, ExtArgs["result"]["user_webinar"]>
     composites: {}
   }
@@ -5521,6 +5546,7 @@ export namespace Prisma {
     readonly user_id: FieldRef<"user_webinar", 'Int'>
     readonly webinar_id: FieldRef<"user_webinar", 'BigInt'>
     readonly joined_at: FieldRef<"user_webinar", 'DateTime'>
+    readonly status: FieldRef<"user_webinar", 'WebinarRegistrationStatus'>
   }
     
 
@@ -6006,7 +6032,8 @@ export namespace Prisma {
     id: 'id',
     user_id: 'user_id',
     webinar_id: 'webinar_id',
-    joined_at: 'joined_at'
+    joined_at: 'joined_at',
+    status: 'status'
   };
 
   export type User_webinarScalarFieldEnum = (typeof User_webinarScalarFieldEnum)[keyof typeof User_webinarScalarFieldEnum]
@@ -6150,6 +6177,20 @@ export namespace Prisma {
    * Reference to a field of type 'Decimal[]'
    */
   export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'WebinarRegistrationStatus'
+   */
+  export type EnumWebinarRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WebinarRegistrationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'WebinarRegistrationStatus[]'
+   */
+  export type ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WebinarRegistrationStatus[]'>
     
 
 
@@ -6452,6 +6493,7 @@ export namespace Prisma {
     user_id?: IntFilter<"user_webinar"> | number
     webinar_id?: BigIntFilter<"user_webinar"> | bigint | number
     joined_at?: DateTimeFilter<"user_webinar"> | Date | string
+    status?: EnumWebinarRegistrationStatusFilter<"user_webinar"> | $Enums.WebinarRegistrationStatus
     user?: XOR<UserScalarRelationFilter, userWhereInput>
     webinar?: XOR<WebinarsScalarRelationFilter, webinarsWhereInput>
   }
@@ -6461,6 +6503,7 @@ export namespace Prisma {
     user_id?: SortOrder
     webinar_id?: SortOrder
     joined_at?: SortOrder
+    status?: SortOrder
     user?: userOrderByWithRelationInput
     webinar?: webinarsOrderByWithRelationInput
   }
@@ -6474,6 +6517,7 @@ export namespace Prisma {
     user_id?: IntFilter<"user_webinar"> | number
     webinar_id?: BigIntFilter<"user_webinar"> | bigint | number
     joined_at?: DateTimeFilter<"user_webinar"> | Date | string
+    status?: EnumWebinarRegistrationStatusFilter<"user_webinar"> | $Enums.WebinarRegistrationStatus
     user?: XOR<UserScalarRelationFilter, userWhereInput>
     webinar?: XOR<WebinarsScalarRelationFilter, webinarsWhereInput>
   }, "id" | "user_id_webinar_id">
@@ -6483,6 +6527,7 @@ export namespace Prisma {
     user_id?: SortOrder
     webinar_id?: SortOrder
     joined_at?: SortOrder
+    status?: SortOrder
     _count?: user_webinarCountOrderByAggregateInput
     _avg?: user_webinarAvgOrderByAggregateInput
     _max?: user_webinarMaxOrderByAggregateInput
@@ -6498,6 +6543,7 @@ export namespace Prisma {
     user_id?: IntWithAggregatesFilter<"user_webinar"> | number
     webinar_id?: BigIntWithAggregatesFilter<"user_webinar"> | bigint | number
     joined_at?: DateTimeWithAggregatesFilter<"user_webinar"> | Date | string
+    status?: EnumWebinarRegistrationStatusWithAggregatesFilter<"user_webinar"> | $Enums.WebinarRegistrationStatus
   }
 
   export type userCreateInput = {
@@ -6815,6 +6861,7 @@ export namespace Prisma {
 
   export type user_webinarCreateInput = {
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
     user: userCreateNestedOneWithoutUser_webinarsInput
     webinar: webinarsCreateNestedOneWithoutUser_webinarsInput
   }
@@ -6824,10 +6871,12 @@ export namespace Prisma {
     user_id: number
     webinar_id: bigint | number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUpdateInput = {
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
     user?: userUpdateOneRequiredWithoutUser_webinarsNestedInput
     webinar?: webinarsUpdateOneRequiredWithoutUser_webinarsNestedInput
   }
@@ -6837,6 +6886,7 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     webinar_id?: BigIntFieldUpdateOperationsInput | bigint | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarCreateManyInput = {
@@ -6844,10 +6894,12 @@ export namespace Prisma {
     user_id: number
     webinar_id: bigint | number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUpdateManyMutationInput = {
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUncheckedUpdateManyInput = {
@@ -6855,6 +6907,7 @@ export namespace Prisma {
     user_id?: IntFieldUpdateOperationsInput | number
     webinar_id?: BigIntFieldUpdateOperationsInput | bigint | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -7294,6 +7347,13 @@ export namespace Prisma {
     _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
+  export type EnumWebinarRegistrationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WebinarRegistrationStatus | EnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel> | $Enums.WebinarRegistrationStatus
+  }
+
   export type WebinarsScalarRelationFilter = {
     is?: webinarsWhereInput
     isNot?: webinarsWhereInput
@@ -7309,6 +7369,7 @@ export namespace Prisma {
     user_id?: SortOrder
     webinar_id?: SortOrder
     joined_at?: SortOrder
+    status?: SortOrder
   }
 
   export type user_webinarAvgOrderByAggregateInput = {
@@ -7322,6 +7383,7 @@ export namespace Prisma {
     user_id?: SortOrder
     webinar_id?: SortOrder
     joined_at?: SortOrder
+    status?: SortOrder
   }
 
   export type user_webinarMinOrderByAggregateInput = {
@@ -7329,12 +7391,23 @@ export namespace Prisma {
     user_id?: SortOrder
     webinar_id?: SortOrder
     joined_at?: SortOrder
+    status?: SortOrder
   }
 
   export type user_webinarSumOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
     webinar_id?: SortOrder
+  }
+
+  export type EnumWebinarRegistrationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WebinarRegistrationStatus | EnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWebinarRegistrationStatusWithAggregatesFilter<$PrismaModel> | $Enums.WebinarRegistrationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel>
+    _max?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel>
   }
 
   export type subscription_planCreateNestedOneWithoutUserInput = {
@@ -7529,6 +7602,10 @@ export namespace Prisma {
     create?: XOR<webinarsCreateWithoutUser_webinarsInput, webinarsUncheckedCreateWithoutUser_webinarsInput>
     connectOrCreate?: webinarsCreateOrConnectWithoutUser_webinarsInput
     connect?: webinarsWhereUniqueInput
+  }
+
+  export type EnumWebinarRegistrationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.WebinarRegistrationStatus
   }
 
   export type userUpdateOneRequiredWithoutUser_webinarsNestedInput = {
@@ -7813,6 +7890,23 @@ export namespace Prisma {
     _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumWebinarRegistrationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WebinarRegistrationStatus | EnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel> | $Enums.WebinarRegistrationStatus
+  }
+
+  export type NestedEnumWebinarRegistrationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WebinarRegistrationStatus | EnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WebinarRegistrationStatus[] | ListEnumWebinarRegistrationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWebinarRegistrationStatusWithAggregatesFilter<$PrismaModel> | $Enums.WebinarRegistrationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel>
+    _max?: NestedEnumWebinarRegistrationStatusFilter<$PrismaModel>
+  }
+
   export type subscription_planCreateWithoutUserInput = {
     razorpay_plan_id: string
     razorpay_subscription_id: string
@@ -7845,6 +7939,7 @@ export namespace Prisma {
 
   export type user_webinarCreateWithoutUserInput = {
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
     webinar: webinarsCreateNestedOneWithoutUser_webinarsInput
   }
 
@@ -7852,6 +7947,7 @@ export namespace Prisma {
     id?: number
     webinar_id: bigint | number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarCreateOrConnectWithoutUserInput = {
@@ -7924,6 +8020,7 @@ export namespace Prisma {
     user_id?: IntFilter<"user_webinar"> | number
     webinar_id?: BigIntFilter<"user_webinar"> | bigint | number
     joined_at?: DateTimeFilter<"user_webinar"> | Date | string
+    status?: EnumWebinarRegistrationStatusFilter<"user_webinar"> | $Enums.WebinarRegistrationStatus
   }
 
   export type userCreateWithoutSubscriptionInput = {
@@ -7990,6 +8087,7 @@ export namespace Prisma {
 
   export type user_webinarCreateWithoutWebinarInput = {
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
     user: userCreateNestedOneWithoutUser_webinarsInput
   }
 
@@ -7997,6 +8095,7 @@ export namespace Prisma {
     id?: number
     user_id: number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarCreateOrConnectWithoutWebinarInput = {
@@ -8183,10 +8282,12 @@ export namespace Prisma {
     id?: number
     webinar_id: bigint | number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUpdateWithoutUserInput = {
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
     webinar?: webinarsUpdateOneRequiredWithoutUser_webinarsNestedInput
   }
 
@@ -8194,22 +8295,26 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     webinar_id?: BigIntFieldUpdateOperationsInput | bigint | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUncheckedUpdateManyWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
     webinar_id?: BigIntFieldUpdateOperationsInput | bigint | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarCreateManyWebinarInput = {
     id?: number
     user_id: number
     joined_at?: Date | string
+    status?: $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUpdateWithoutWebinarInput = {
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
     user?: userUpdateOneRequiredWithoutUser_webinarsNestedInput
   }
 
@@ -8217,12 +8322,14 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
   export type user_webinarUncheckedUpdateManyWithoutWebinarInput = {
     id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     joined_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumWebinarRegistrationStatusFieldUpdateOperationsInput | $Enums.WebinarRegistrationStatus
   }
 
 

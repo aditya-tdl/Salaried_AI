@@ -9,16 +9,16 @@ datasource db {
 }
 
 model user {
-  id           Int                @id @default(autoincrement())
-  name         String
-  email        String             @unique
-  gender       String
-  mobile       String             @unique
-  password     String
-  role         role               @default(USER)
-  created_at   DateTime           @default(now())
-  subscription subscription_plan?
+  id            Int                @id @default(autoincrement())
+  name          String
+  email         String             @unique
+  gender        String
+  mobile        String             @unique
+  password      String
+  role          role               @default(USER)
+  created_at    DateTime           @default(now())
   user_webinars user_webinar[]
+  subscription  subscription_plan?
 
   @@index([email])
   @@index([mobile])
@@ -46,22 +46,22 @@ model subscription_plan {
 }
 
 model webinars {
-  id           BigInt      @id @default(autoincrement())
-  title        String
-  agenda       String?
-  speakers     String?
-  duration     Int         @default(90)
-  platform     String      @default("Zoom")
-  link         String?
-  type         WebinarType @default(Free)
-  price        Decimal?    @db.Decimal(10, 2)
-  capacity     Int         @default(100)
-  created_at   DateTime    @default(now()) @db.Timestamptz(6)
-  image_key    String?
-  image_url    String?
-  updated_at   DateTime    @updatedAt @db.Timestamptz(6)
-  webinar_date DateTime    @db.Date
-  webinar_time DateTime    @db.Time(6)
+  id            BigInt         @id @default(autoincrement())
+  title         String
+  agenda        String?
+  speakers      String?
+  duration      Int            @default(90)
+  platform      String         @default("Zoom")
+  link          String?
+  type          WebinarType    @default(Free)
+  price         Decimal?       @db.Decimal(10, 2)
+  capacity      Int            @default(100)
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  image_key     String?
+  image_url     String?
+  updated_at    DateTime       @updatedAt @db.Timestamptz(6)
+  webinar_date  DateTime       @db.Date
+  webinar_time  DateTime       @db.Time(6)
   user_webinars user_webinar[]
 
   @@map("webinars")
@@ -74,9 +74,8 @@ model user_webinar {
   webinar_id BigInt
   joined_at  DateTime                  @default(now())
   status     WebinarRegistrationStatus @default(REGISTERED)
-
-  user    user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  webinar webinars @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
+  user       user                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  webinar    webinars                  @relation(fields: [webinar_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, webinar_id])
   @@schema("event")
